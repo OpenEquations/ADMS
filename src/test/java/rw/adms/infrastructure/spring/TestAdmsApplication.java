@@ -1,6 +1,7 @@
-package rw.adms;
+package rw.adms.infrastructure.spring;
 
 import org.springframework.boot.SpringApplication;
+import rw.adms.TestcontainersConfiguration;
 
 public class TestAdmsApplication {
 
