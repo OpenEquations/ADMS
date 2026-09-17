@@ -4,19 +4,25 @@ import rw.adms.domain.company.Company;
 import rw.adms.domain.company.interfaces.CompanyRepository;
 import rw.adms.domain.company.vo.CompanyId;
 
-public class GetCompanyUseCase {
+public class ChangeCompanyEmailUseCase {
 
     private final CompanyRepository companyRepository;
 
-    public GetCompanyUseCase(CompanyRepository companyRepository) {
+    public ChangeCompanyEmailUseCase(
+            CompanyRepository companyRepository
+    ) {
         this.companyRepository = companyRepository;
     }
 
-    public Company execute(Long companyId) {
+    public void execute(Long companyId, String newEmail) {
 
-        return companyRepository.findById(
+        Company company = companyRepository.findById(
                 new CompanyId(companyId)
         ).orElseThrow(() ->
                 new IllegalArgumentException("Company not found"));
+
+        company.changeCompanyEmail(newEmail);
+
+        companyRepository.save(company);
     }
 }
