@@ -1,11 +1,11 @@
 package rw.adms.domain.tenders;
 
+import rw.adms.domain.companies.Company;
 import rw.adms.domain.items.Item;
 import rw.adms.domain.tenders.enums.TenderStatus;
 import rw.adms.domain.tenders.enums.TenderType;
 import rw.adms.domain.tenders.vo.TenderId;
 import rw.adms.domain.tenders.vo.TenderTitle;
-import rw.adms.domain.companies.Company;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,9 +34,43 @@ public class Tender {
         this.status = TenderStatus.NOT_PUBLISHED;
     }
 
-    // =========================
-    // Getters
-    // =========================
+    private Tender(
+            TenderId id,
+            TenderTitle title,
+            String description,
+            List<Item> items,
+            TenderType type,
+            Company tenderWinner,
+            TenderStatus status
+    ) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.items.addAll(items);
+        this.type = type;
+        this.tenderWinner = tenderWinner;
+        this.status = status;
+    }
+
+    public static Tender reconstitute(
+            Long id,
+            String title,
+            String description,
+            List<Item> items,
+            TenderType type,
+            Company tenderWinner,
+            TenderStatus status
+    ) {
+        return new Tender(
+                new TenderId(id),
+                new TenderTitle(title),
+                description,
+                items,
+                type,
+                tenderWinner,
+                status
+        );
+    }
 
     public TenderId getId() {
         return id;
@@ -65,10 +99,6 @@ public class Tender {
     public TenderStatus getStatus() {
         return status;
     }
-
-    // =========================
-    // Setters / Behaviors
-    // =========================
 
     public void setDescription(String description) {
         this.description = description;

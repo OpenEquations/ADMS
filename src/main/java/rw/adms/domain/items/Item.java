@@ -1,9 +1,10 @@
 package rw.adms.domain.items;
+
+import rw.adms.domain.companies.Company;
 import rw.adms.domain.items.enums.ItemStatus;
 import rw.adms.domain.items.vo.ItemHealth;
 import rw.adms.domain.items.vo.ItemId;
 import rw.adms.domain.shared.vo.Money;
-import rw.adms.domain.company.Company;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -42,9 +43,59 @@ public class Item {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // =========================
-    // Getters
-    // =========================
+    private Item(
+            ItemId itemId,
+            String itemName,
+            String itemDescription,
+            ItemStatus itemStatus,
+            ItemHealth itemHealth,
+            LocalDate dateBought,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt,
+            Money soldAt,
+            Company soldTo,
+            Money repairCost
+    ) {
+        this.itemId = itemId;
+        this.itemName = itemName;
+        this.itemDescription = itemDescription;
+        this.itemStatus = itemStatus;
+        this.itemHealth = itemHealth;
+        this.dateBought = dateBought;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.soldAt = soldAt;
+        this.soldTo = soldTo;
+        this.repairCost = repairCost;
+    }
+
+    public static Item reconstitute(
+            Long id,
+            String itemName,
+            String itemDescription,
+            ItemStatus itemStatus,
+            int itemHealth,
+            LocalDate dateBought,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt,
+            Money soldAt,
+            Company soldTo,
+            Money repairCost
+    ) {
+        return new Item(
+                new ItemId(id),
+                itemName,
+                itemDescription,
+                itemStatus,
+                new ItemHealth(itemHealth),
+                dateBought,
+                createdAt,
+                updatedAt,
+                soldAt,
+                soldTo,
+                repairCost
+        );
+    }
 
     public ItemId getItemId() {
         return itemId;
@@ -86,9 +137,9 @@ public class Item {
         return soldTo;
     }
 
-    // =========================
-    // Domain behavior
-    // =========================
+    public Money getRepairCost() {
+        return repairCost;
+    }
 
     public boolean editItemName(String itemName) {
         if (itemName == null || itemName.isBlank()) {
@@ -146,6 +197,7 @@ public class Item {
 
     public void setRepairCost(Money repairCost) {
         this.repairCost = repairCost;
+        touch();
     }
 
     private void touch() {

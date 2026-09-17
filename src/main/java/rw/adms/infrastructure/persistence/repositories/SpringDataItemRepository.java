@@ -1,4 +1,8 @@
 package rw.adms.infrastructure.persistence.repositories;
 
-public class SpringDataItemRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
+import rw.adms.infrastructure.persistence.entities.ItemJpaEntity;
+
+public interface SpringDataItemRepository
+        extends JpaRepository<ItemJpaEntity, Long> {
 }

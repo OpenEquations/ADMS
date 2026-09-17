@@ -1,15 +1,19 @@
 package rw.adms.domain.users.vo;
 
 public final class Password {
+
     private final String password;
 
     public Password(String password) {
         this.password = password;
     }
 
+    public String getValue() {
+        return password;
+    }
+
     @Override
     public boolean equals(Object o) {
-
         if (this == o)
             return true;
 
@@ -23,8 +27,6 @@ public final class Password {
 
     @Override
     public int hashCode() {
-
-        int result = password.hashCode();
-        return result;
+        return password.hashCode();
     }
 }

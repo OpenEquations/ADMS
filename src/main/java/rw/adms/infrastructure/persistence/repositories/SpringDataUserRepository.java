@@ -1,4 +1,8 @@
 package rw.adms.infrastructure.persistence.repositories;
 
-public class SpringDataUserRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
+import rw.adms.infrastructure.persistence.entities.UserJpaEntity;
+
+public interface SpringDataUserRepository
+        extends JpaRepository<UserJpaEntity, Long> {
 }

@@ -9,7 +9,7 @@ import java.util.Optional;
 
 public interface WarehouseRepository {
 
-    void save(Warehouse warehouse);
+    Warehouse save(Warehouse warehouse);
 
     Optional<Warehouse> findById(WarehouseId id);
 

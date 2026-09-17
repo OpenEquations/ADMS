@@ -20,9 +20,27 @@ public class Warehouse {
         this.name = new WarehouseName(name);
     }
 
-    // =========================
-    // Getters
-    // =========================
+    private Warehouse(
+            WarehouseId id,
+            WarehouseName name,
+            List<Item> items
+    ) {
+        this.id = id;
+        this.name = name;
+        this.items.addAll(items);
+    }
+
+    public static Warehouse reconstitute(
+            Long id,
+            String name,
+            List<Item> items
+    ) {
+        return new Warehouse(
+                new WarehouseId(id),
+                new WarehouseName(name),
+                items
+        );
+    }
 
     public WarehouseId getId() {
         return id;
@@ -36,16 +54,11 @@ public class Warehouse {
         return Collections.unmodifiableList(items);
     }
 
-    // =========================
-    // Domain behavior
-    // =========================
-
     public void changeName(String name) {
         this.name = new WarehouseName(name);
     }
 
     public void addItem(Item item) {
-
         if (item == null) {
             throw new IllegalArgumentException("Item cannot be null");
         }
@@ -60,7 +73,6 @@ public class Warehouse {
     }
 
     public void removeItem(ItemId itemId) {
-
         if (itemId == null) {
             throw new IllegalArgumentException(
                     "Item ID cannot be null"
@@ -79,7 +91,6 @@ public class Warehouse {
     }
 
     public Item getItem(ItemId itemId) {
-
         if (itemId == null) {
             throw new IllegalArgumentException(
                     "Item ID cannot be null"
@@ -95,7 +106,6 @@ public class Warehouse {
     }
 
     public boolean containsItem(ItemId itemId) {
-
         if (itemId == null) {
             return false;
         }

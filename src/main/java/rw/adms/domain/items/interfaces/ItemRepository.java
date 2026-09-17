@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface ItemRepository {
 
-    void save(Item item);
+    Item save(Item item);
 
     Optional<Item> findById(ItemId id);
 

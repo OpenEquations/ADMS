@@ -15,7 +15,27 @@ public class Company {
         this.email = new CompanyEmail(email);
     }
 
-    // Getters
+    private Company(
+            CompanyId id,
+            CompanyName name,
+            CompanyEmail email
+    ) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+    }
+
+    public static Company reconstitute(
+            Long id,
+            String name,
+            String email
+    ) {
+        return new Company(
+                new CompanyId(id),
+                new CompanyName(name),
+                new CompanyEmail(email)
+        );
+    }
 
     public CompanyId getId() {
         return id;
@@ -28,8 +48,6 @@ public class Company {
     public CompanyEmail getEmail() {
         return email;
     }
-
-    // Behaviors
 
     public void changeCompanyName(String name) {
         this.name = new CompanyName(name);

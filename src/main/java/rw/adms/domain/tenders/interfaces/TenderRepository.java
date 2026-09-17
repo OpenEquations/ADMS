@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface TenderRepository {
 
-    void save(Tender tender);
+    Tender save(Tender tender);
 
     Optional<Tender> findById(TenderId id);
 
