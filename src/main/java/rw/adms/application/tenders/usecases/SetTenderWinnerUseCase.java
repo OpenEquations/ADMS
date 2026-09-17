@@ -1,8 +1,8 @@
 package rw.adms.application.tenders.usecases;
 
 import rw.adms.domain.companies.interfaces.CompanyRepository;
-import rw.adms.domain.company.Company;
-import rw.adms.domain.company.vo.CompanyId;
+import rw.adms.domain.companies.Company;
+import rw.adms.domain.companies.vo.CompanyId;
 import rw.adms.domain.tenders.Tender;
 import rw.adms.domain.tenders.interfaces.TenderRepository;
 import rw.adms.domain.tenders.vo.TenderId;

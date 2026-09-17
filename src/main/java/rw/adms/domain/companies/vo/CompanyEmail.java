@@ -1,4 +1,4 @@
-package rw.adms.domain.company.vo;
+package rw.adms.domain.companies.vo;
 
 public final class CompanyEmail {
 

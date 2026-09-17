@@ -1,8 +1,8 @@
-package rw.adms.domain.company;
+package rw.adms.domain.companies;
 
-import rw.adms.domain.company.vo.CompanyEmail;
-import rw.adms.domain.company.vo.CompanyId;
-import rw.adms.domain.company.vo.CompanyName;
+import rw.adms.domain.companies.vo.CompanyEmail;
+import rw.adms.domain.companies.vo.CompanyId;
+import rw.adms.domain.companies.vo.CompanyName;
 
 public class Company {
 

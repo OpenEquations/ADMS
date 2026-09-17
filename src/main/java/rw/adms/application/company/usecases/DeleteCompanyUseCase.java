@@ -1,7 +1,8 @@
 package rw.adms.application.company.usecases;
 
-import rw.adms.domain.company.interfaces.CompanyRepository;
-import rw.adms.domain.company.vo.CompanyId;
+import rw.adms.domain.companies.interfaces.CompanyRepository;
+import rw.adms.domain.companies.vo.CompanyId;
+
 
 public class DeleteCompanyUseCase {
 

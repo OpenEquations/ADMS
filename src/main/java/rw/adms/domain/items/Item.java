@@ -1,9 +1,9 @@
 package rw.adms.domain.items;
 import rw.adms.domain.items.enums.ItemStatus;
 import rw.adms.domain.items.vo.ItemHealth;
-import rw.adms.domain.companies.Company;
 import rw.adms.domain.items.vo.ItemId;
 import rw.adms.domain.shared.vo.Money;
+import rw.adms.domain.company.Company;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

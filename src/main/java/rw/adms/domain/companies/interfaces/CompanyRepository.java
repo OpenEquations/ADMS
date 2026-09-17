@@ -1,7 +1,7 @@
 package rw.adms.domain.companies.interfaces;
 
-import rw.adms.domain.company.Company;
-import rw.adms.domain.company.vo.CompanyId;
+import rw.adms.domain.companies.Company;
+import rw.adms.domain.companies.vo.CompanyId;
 
 import java.util.List;
 import java.util.Optional;

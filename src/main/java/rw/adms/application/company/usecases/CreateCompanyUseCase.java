@@ -1,7 +1,7 @@
 package rw.adms.application.company.usecases;
 
-import rw.adms.domain.company.Company;
-import rw.adms.domain.company.interfaces.CompanyRepository;
+import rw.adms.domain.companies.Company;
+import rw.adms.domain.companies.interfaces.CompanyRepository;
 
 public class CreateCompanyUseCase {
 
