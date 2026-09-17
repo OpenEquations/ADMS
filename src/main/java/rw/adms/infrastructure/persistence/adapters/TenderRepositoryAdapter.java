@@ -3,6 +3,8 @@ package rw.adms.infrastructure.persistence.adapters;
 import org.springframework.stereotype.Repository;
 import rw.adms.domain.companies.Company;
 import rw.adms.domain.items.Item;
+import rw.adms.domain.items.enums.ItemStatus;
+import rw.adms.domain.items.vo.ItemHealth;
 import rw.adms.domain.tenders.Tender;
 import rw.adms.domain.tenders.interfaces.TenderRepository;
 import rw.adms.domain.tenders.vo.TenderId;
@@ -17,8 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public class TenderRepositoryAdapter
-        implements TenderRepository {
+public class TenderRepositoryAdapter implements TenderRepository {
 
     private final SpringDataTenderRepository tenderRepository;
     private final SpringDataItemRepository itemRepository;
@@ -35,7 +36,7 @@ public class TenderRepositoryAdapter
     }
 
     @Override
-    public void save(Tender tender) {
+    public Tender save(Tender tender) {
 
         TenderJpaEntity entity;
 
@@ -54,7 +55,8 @@ public class TenderRepositoryAdapter
                     tender.getId().getValue()
             ).orElseThrow(() ->
                     new IllegalArgumentException(
-                            "Tender not found"
+                            "Tender not found: "
+                                    + tender.getId()
                     )
             );
 
@@ -75,54 +77,71 @@ public class TenderRepositoryAdapter
             );
         }
 
-        List<ItemJpaEntity> items =
+        // -------------------------
+        // Items
+        // -------------------------
+
+        List<ItemJpaEntity> itemEntities =
                 tender.getItems()
                         .stream()
-                        .map(item -> itemRepository.findById(
-                                item.getItemId().getValue()
-                        ).orElseThrow(() ->
-                                new IllegalArgumentException(
-                                        "Item not found: "
-                                                + item.getItemId()
+                        .map(item ->
+                                itemRepository.findById(
+                                        item.getItemId().getValue()
+                                ).orElseThrow(() ->
+                                        new IllegalArgumentException(
+                                                "Item not found: "
+                                                        + item.getItemId()
+                                        )
                                 )
-                        ))
+                        )
                         .toList();
 
-        entity.setItems(items);
+        entity.setItems(itemEntities);
+
+        // -------------------------
+        // Tender winner
+        // -------------------------
 
         if (tender.getTenderWinner() != null) {
 
-            if (tender.getTenderWinner().getId() == null) {
-                throw new IllegalArgumentException(
-                        "Tender winner must already exist"
-                );
-            }
+            Company company =
+                    tender.getTenderWinner();
 
-            CompanyJpaEntity company =
+            CompanyJpaEntity companyEntity =
                     companyRepository.findById(
-                            tender.getTenderWinner()
-                                    .getId()
-                                    .getValue()
+                            company.getId().getValue()
                     ).orElseThrow(() ->
                             new IllegalArgumentException(
-                                    "Tender winner company not found"
+                                    "Company not found: "
+                                            + company.getId()
                             )
                     );
 
-            entity.setTenderWinner(company);
+            entity.setTenderWinner(
+                    companyEntity
+            );
 
         } else {
+
             entity.setTenderWinner(null);
         }
 
-        tenderRepository.save(entity);
+        // -------------------------
+        // Save
+        // -------------------------
+
+        TenderJpaEntity savedEntity =
+                tenderRepository.save(entity);
+
+        return toDomain(savedEntity);
     }
 
     @Override
     public Optional<Tender> findById(TenderId id) {
 
-        return tenderRepository.findById(id.getValue())
-                .map(this::toDomain);
+        return tenderRepository.findById(
+                id.getValue()
+        ).map(this::toDomain);
     }
 
     @Override
@@ -145,25 +164,29 @@ public class TenderRepositoryAdapter
     @Override
     public void deleteById(TenderId id) {
 
-        tenderRepository.deleteById(id.getValue());
+        tenderRepository.deleteById(
+                id.getValue()
+        );
     }
 
-    private Tender toDomain(TenderJpaEntity entity) {
+    private Tender toDomain(
+            TenderJpaEntity entity
+    ) {
 
         List<Item> items =
                 entity.getItems()
                         .stream()
-                        .map(this::toItem)
+                        .map(this::itemToDomain)
                         .toList();
 
-        Company winner = null;
+        Company tenderWinner = null;
 
         if (entity.getTenderWinner() != null) {
 
             CompanyJpaEntity company =
                     entity.getTenderWinner();
 
-            winner = Company.reconstitute(
+            tenderWinner = Company.reconstitute(
                     company.getId(),
                     company.getName(),
                     company.getEmail()
@@ -176,12 +199,14 @@ public class TenderRepositoryAdapter
                 entity.getDescription(),
                 items,
                 entity.getType(),
-                winner,
+                tenderWinner,
                 entity.getStatus()
         );
     }
 
-    private Item toItem(ItemJpaEntity entity) {
+    private Item itemToDomain(
+            ItemJpaEntity entity
+    ) {
 
         return Item.reconstitute(
                 entity.getId(),

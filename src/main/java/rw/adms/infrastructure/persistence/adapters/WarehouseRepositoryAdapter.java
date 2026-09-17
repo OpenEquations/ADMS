@@ -2,7 +2,6 @@ package rw.adms.infrastructure.persistence.adapters;
 
 import org.springframework.stereotype.Repository;
 import rw.adms.domain.items.Item;
-import rw.adms.domain.items.vo.ItemId;
 import rw.adms.domain.warehouses.Warehouse;
 import rw.adms.domain.warehouses.interfaces.WarehouseRepository;
 import rw.adms.domain.warehouses.vo.WarehouseId;
@@ -31,7 +30,7 @@ public class WarehouseRepositoryAdapter
     }
 
     @Override
-    public void save(Warehouse warehouse) {
+    public Warehouse save(Warehouse warehouse) {
 
         WarehouseJpaEntity entity;
 
@@ -47,7 +46,8 @@ public class WarehouseRepositoryAdapter
                     warehouse.getId().getValue()
             ).orElseThrow(() ->
                     new IllegalArgumentException(
-                            "Warehouse not found"
+                            "Warehouse not found: "
+                                    + warehouse.getId()
                     )
             );
 
@@ -56,29 +56,45 @@ public class WarehouseRepositoryAdapter
             );
         }
 
-        List<ItemJpaEntity> items =
+        // -------------------------
+        // Items
+        // -------------------------
+
+        List<ItemJpaEntity> itemEntities =
                 warehouse.getItems()
                         .stream()
-                        .map(item -> itemRepository.findById(
-                                item.getItemId().getValue()
-                        ).orElseThrow(() ->
-                                new IllegalArgumentException(
-                                        "Item not found: "
-                                                + item.getItemId()
+                        .map(item ->
+                                itemRepository.findById(
+                                        item.getItemId().getValue()
+                                ).orElseThrow(() ->
+                                        new IllegalArgumentException(
+                                                "Item not found: "
+                                                        + item.getItemId()
+                                        )
                                 )
-                        ))
+                        )
                         .toList();
 
-        entity.setItems(items);
+        entity.setItems(itemEntities);
 
-        warehouseRepository.save(entity);
+        // -------------------------
+        // Save
+        // -------------------------
+
+        WarehouseJpaEntity savedEntity =
+                warehouseRepository.save(entity);
+
+        return toDomain(savedEntity);
     }
 
     @Override
-    public Optional<Warehouse> findById(WarehouseId id) {
+    public Optional<Warehouse> findById(
+            WarehouseId id
+    ) {
 
-        return warehouseRepository.findById(id.getValue())
-                .map(this::toDomain);
+        return warehouseRepository.findById(
+                id.getValue()
+        ).map(this::toDomain);
     }
 
     @Override
@@ -86,9 +102,9 @@ public class WarehouseRepositoryAdapter
             WarehouseName name
     ) {
 
-        return warehouseRepository
-                .findByName(name.getValue())
-                .map(this::toDomain);
+        return warehouseRepository.findByName(
+                name.getValue()
+        ).map(this::toDomain);
     }
 
     @Override
@@ -109,7 +125,9 @@ public class WarehouseRepositoryAdapter
     }
 
     @Override
-    public boolean existsByName(WarehouseName name) {
+    public boolean existsByName(
+            WarehouseName name
+    ) {
 
         return warehouseRepository.existsByName(
                 name.getValue()
@@ -119,7 +137,9 @@ public class WarehouseRepositoryAdapter
     @Override
     public void deleteById(WarehouseId id) {
 
-        warehouseRepository.deleteById(id.getValue());
+        warehouseRepository.deleteById(
+                id.getValue()
+        );
     }
 
     private Warehouse toDomain(
@@ -129,7 +149,7 @@ public class WarehouseRepositoryAdapter
         List<Item> items =
                 entity.getItems()
                         .stream()
-                        .map(this::toItem)
+                        .map(this::itemToDomain)
                         .toList();
 
         return Warehouse.reconstitute(
@@ -139,7 +159,9 @@ public class WarehouseRepositoryAdapter
         );
     }
 
-    private Item toItem(ItemJpaEntity entity) {
+    private Item itemToDomain(
+            ItemJpaEntity entity
+    ) {
 
         return Item.reconstitute(
                 entity.getId(),

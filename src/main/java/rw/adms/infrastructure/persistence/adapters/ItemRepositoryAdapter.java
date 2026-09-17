@@ -2,9 +2,10 @@ package rw.adms.infrastructure.persistence.adapters;
 
 import org.springframework.stereotype.Repository;
 import rw.adms.domain.companies.Company;
-import rw.adms.domain.companies.vo.CompanyId;
 import rw.adms.domain.items.Item;
+import rw.adms.domain.items.enums.ItemStatus;
 import rw.adms.domain.items.interfaces.ItemRepository;
+import rw.adms.domain.items.vo.ItemHealth;
 import rw.adms.domain.items.vo.ItemId;
 import rw.adms.domain.shared.vo.Money;
 import rw.adms.infrastructure.persistence.entities.CompanyJpaEntity;
@@ -12,6 +13,7 @@ import rw.adms.infrastructure.persistence.entities.ItemJpaEntity;
 import rw.adms.infrastructure.persistence.repositories.SpringDataCompanyRepository;
 import rw.adms.infrastructure.persistence.repositories.SpringDataItemRepository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,7 +32,7 @@ public class ItemRepositoryAdapter implements ItemRepository {
     }
 
     @Override
-    public void save(Item item) {
+    public Item save(Item item) {
 
         ItemJpaEntity entity;
 
@@ -52,76 +54,121 @@ public class ItemRepositoryAdapter implements ItemRepository {
                     item.getItemId().getValue()
             ).orElseThrow(() ->
                     new IllegalArgumentException(
-                            "Item not found"
+                            "Item not found: " + item.getItemId()
                     )
             );
 
-            entity.setItemName(item.getItemName());
-            entity.setItemDescription(item.getItemDescription());
-            entity.setItemStatus(item.getItemStatus());
-            entity.setItemHealth(item.getItemHealth().getValue());
-            entity.setDateBought(item.getDateBought());
-            entity.setUpdatedAt(item.getUpdatedAt());
+            entity.setItemName(
+                    item.getItemName()
+            );
+
+            entity.setItemDescription(
+                    item.getItemDescription()
+            );
+
+            entity.setItemStatus(
+                    item.getItemStatus()
+            );
+
+            entity.setItemHealth(
+                    item.getItemHealth().getValue()
+            );
+
+            entity.setDateBought(
+                    item.getDateBought()
+            );
+
+            entity.setCreatedAt(
+                    item.getCreatedAt()
+            );
+
+            entity.setUpdatedAt(
+                    item.getUpdatedAt()
+            );
         }
 
+        // -------------------------
+        // Sold price
+        // -------------------------
+
         if (item.getSoldAt() != null) {
+
             entity.setSoldAtAmount(
                     item.getSoldAt().getAmount()
             );
+
             entity.setSoldAtCurrency(
                     item.getSoldAt().getCurrency()
             );
+
         } else {
+
             entity.setSoldAtAmount(null);
             entity.setSoldAtCurrency(null);
         }
 
+        // -------------------------
+        // Sold to company
+        // -------------------------
+
         if (item.getSoldTo() != null) {
 
-            CompanyId companyId =
-                    item.getSoldTo().getId();
+            Company company =
+                    item.getSoldTo();
 
-            if (companyId == null) {
-                throw new IllegalArgumentException(
-                        "Sold company must already exist"
-                );
-            }
-
-            CompanyJpaEntity company =
+            CompanyJpaEntity companyEntity =
                     companyRepository.findById(
-                            companyId.getValue()
+                            company.getId().getValue()
                     ).orElseThrow(() ->
                             new IllegalArgumentException(
-                                    "Sold company not found"
+                                    "Company not found: "
+                                            + company.getId()
                             )
                     );
 
-            entity.setSoldTo(company);
+            entity.setSoldTo(companyEntity);
 
         } else {
+
             entity.setSoldTo(null);
         }
 
+        // -------------------------
+        // Repair cost
+        // -------------------------
+
         if (item.getRepairCost() != null) {
+
             entity.setRepairCostAmount(
                     item.getRepairCost().getAmount()
             );
+
             entity.setRepairCostCurrency(
                     item.getRepairCost().getCurrency()
             );
+
         } else {
+
             entity.setRepairCostAmount(null);
             entity.setRepairCostCurrency(null);
         }
 
-        itemRepository.save(entity);
+        // -------------------------
+        // Save
+        // -------------------------
+
+        ItemJpaEntity savedEntity =
+                itemRepository.save(entity);
+
+        return toDomain(savedEntity);
     }
 
     @Override
     public Optional<Item> findById(ItemId id) {
 
-        return itemRepository.findById(id.getValue())
-                .map(this::toDomain);
+        return itemRepository.findById(
+                id.getValue()
+        ).map(this::toDomain);
     }
 
     @Override
@@ -136,20 +183,27 @@ public class ItemRepositoryAdapter implements ItemRepository {
     @Override
     public boolean existsById(ItemId id) {
 
-        return itemRepository.existsById(id.getValue());
+        return itemRepository.existsById(
+                id.getValue()
+        );
     }
 
     @Override
     public void deleteById(ItemId id) {
 
-        itemRepository.deleteById(id.getValue());
+        itemRepository.deleteById(
+                id.getValue()
+        );
     }
 
     private Item toDomain(ItemJpaEntity entity) {
 
         Money soldAt = null;
 
-        if (entity.getSoldAtAmount() != null) {
+        if (
+                entity.getSoldAtAmount() != null
+                        && entity.getSoldAtCurrency() != null
+        ) {
             soldAt = new Money(
                     entity.getSoldAtAmount(),
                     entity.getSoldAtCurrency()
@@ -159,16 +213,23 @@ public class ItemRepositoryAdapter implements ItemRepository {
         Company soldTo = null;
 
         if (entity.getSoldTo() != null) {
+
+            CompanyJpaEntity company =
+                    entity.getSoldTo();
+
             soldTo = Company.reconstitute(
-                    entity.getSoldTo().getId(),
-                    entity.getSoldTo().getName(),
-                    entity.getSoldTo().getEmail()
+                    company.getId(),
+                    company.getName(),
+                    company.getEmail()
             );
         }
 
         Money repairCost = null;
 
-        if (entity.getRepairCostAmount() != null) {
+        if (
+                entity.getRepairCostAmount() != null
+                        && entity.getRepairCostCurrency() != null
+        ) {
             repairCost = new Money(
                     entity.getRepairCostAmount(),
                     entity.getRepairCostCurrency()

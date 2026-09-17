@@ -9,12 +9,13 @@ import rw.adms.domain.items.interfaces.ItemRepository;
 import rw.adms.domain.items.vo.ItemHealth;
 import rw.adms.domain.warehouses.Warehouse;
 import rw.adms.domain.warehouses.interfaces.WarehouseRepository;
+import rw.adms.infrastructure.spring.AdmsApplication;
 
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
+@SpringBootTest(classes = AdmsApplication.class)
 class WarehouseRepositoryAdapterTest {
 
     @Autowired

@@ -5,12 +5,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import rw.adms.domain.companies.Company;
 import rw.adms.domain.companies.interfaces.CompanyRepository;
+import rw.adms.infrastructure.spring.AdmsApplication;
 
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
+@SpringBootTest(classes = AdmsApplication.class)
 class CompanyRepositoryAdapterTest {
 
     @Autowired

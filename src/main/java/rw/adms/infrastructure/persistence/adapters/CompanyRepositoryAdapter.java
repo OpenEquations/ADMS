@@ -22,7 +22,7 @@ public class CompanyRepositoryAdapter implements CompanyRepository {
     }
 
     @Override
-    public void save(Company company) {
+    public Company save(Company company) {
 
         CompanyJpaEntity entity;
 
@@ -39,7 +39,7 @@ public class CompanyRepositoryAdapter implements CompanyRepository {
                     company.getId().getValue()
             ).orElseThrow(() ->
                     new IllegalArgumentException(
-                            "Company not found"
+                            "Company not found: " + company.getId()
                     )
             );
 
@@ -52,14 +52,28 @@ public class CompanyRepositoryAdapter implements CompanyRepository {
             );
         }
 
-        repository.save(entity);
+        CompanyJpaEntity savedEntity =
+                repository.save(entity);
+
+        return Company.reconstitute(
+                savedEntity.getId(),
+                savedEntity.getName(),
+                savedEntity.getEmail()
+        );
     }
 
     @Override
     public Optional<Company> findById(CompanyId id) {
 
-        return repository.findById(id.getValue())
-                .map(this::toDomain);
+        return repository.findById(
+                id.getValue()
+        ).map(entity ->
+                Company.reconstitute(
+                        entity.getId(),
+                        entity.getName(),
+                        entity.getEmail()
+                )
+        );
     }
 
     @Override
@@ -67,28 +81,29 @@ public class CompanyRepositoryAdapter implements CompanyRepository {
 
         return repository.findAll()
                 .stream()
-                .map(this::toDomain)
+                .map(entity ->
+                        Company.reconstitute(
+                                entity.getId(),
+                                entity.getName(),
+                                entity.getEmail()
+                        )
+                )
                 .toList();
     }
 
     @Override
     public boolean existsById(CompanyId id) {
 
-        return repository.existsById(id.getValue());
+        return repository.existsById(
+                id.getValue()
+        );
     }
 
     @Override
     public void deleteById(CompanyId id) {
 
-        repository.deleteById(id.getValue());
-    }
-
-    private Company toDomain(CompanyJpaEntity entity) {
-
-        return Company.reconstitute(
-                entity.getId(),
-                entity.getName(),
-                entity.getEmail()
+        repository.deleteById(
+                id.getValue()
         );
     }
 }

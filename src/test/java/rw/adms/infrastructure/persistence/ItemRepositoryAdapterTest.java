@@ -8,13 +8,14 @@ import rw.adms.domain.items.enums.ItemStatus;
 import rw.adms.domain.items.interfaces.ItemRepository;
 import rw.adms.domain.items.vo.ItemHealth;
 import rw.adms.domain.shared.vo.Money;
+import rw.adms.infrastructure.spring.AdmsApplication;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
+@SpringBootTest(classes = AdmsApplication.class)
 class ItemRepositoryAdapterTest {
 
     @Autowired

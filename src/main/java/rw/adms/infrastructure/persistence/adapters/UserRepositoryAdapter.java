@@ -10,8 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public class UserRepositoryAdapter
-        implements UserRepository {
+public class UserRepositoryAdapter implements UserRepository {
 
     private final SpringDataUserRepository repository;
 
@@ -22,7 +21,7 @@ public class UserRepositoryAdapter
     }
 
     @Override
-    public void save(User user) {
+    public User save(User user) {
 
         UserJpaEntity entity;
 
@@ -41,7 +40,8 @@ public class UserRepositoryAdapter
                     user.getId()
             ).orElseThrow(() ->
                     new IllegalArgumentException(
-                            "User not found"
+                            "User not found: "
+                                    + user.getId()
                     )
             );
 
@@ -62,14 +62,31 @@ public class UserRepositoryAdapter
             );
         }
 
-        repository.save(entity);
+        UserJpaEntity savedEntity =
+                repository.save(entity);
+
+        return User.reconstitute(
+                savedEntity.getId(),
+                savedEntity.getFirstName(),
+                savedEntity.getLastName(),
+                savedEntity.getEmail(),
+                savedEntity.getPassword()
+        );
     }
 
     @Override
     public Optional<User> findById(Long id) {
 
         return repository.findById(id)
-                .map(this::toDomain);
+                .map(entity ->
+                        User.reconstitute(
+                                entity.getId(),
+                                entity.getFirstName(),
+                                entity.getLastName(),
+                                entity.getEmail(),
+                                entity.getPassword()
+                        )
+                );
     }
 
     @Override
@@ -77,7 +94,15 @@ public class UserRepositoryAdapter
 
         return repository.findAll()
                 .stream()
-                .map(this::toDomain)
+                .map(entity ->
+                        User.reconstitute(
+                                entity.getId(),
+                                entity.getFirstName(),
+                                entity.getLastName(),
+                                entity.getEmail(),
+                                entity.getPassword()
+                        )
+                )
                 .toList();
     }
 
@@ -85,16 +110,5 @@ public class UserRepositoryAdapter
     public void deleteById(Long id) {
 
         repository.deleteById(id);
-    }
-
-    private User toDomain(UserJpaEntity entity) {
-
-        return User.reconstitute(
-                entity.getId(),
-                entity.getFirstName(),
-                entity.getLastName(),
-                entity.getEmail(),
-                entity.getPassword()
-        );
     }
 }
