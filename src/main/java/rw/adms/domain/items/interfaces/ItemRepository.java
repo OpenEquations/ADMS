@@ -14,5 +14,7 @@ public interface ItemRepository {
 
     List<Item> findAll();
 
+    boolean existsById(ItemId id);
+
     void deleteById(ItemId id);
 }

@@ -3,25 +3,20 @@ package rw.adms.application.tenders.usecases;
 import rw.adms.domain.tenders.Tender;
 import rw.adms.domain.tenders.interfaces.TenderRepository;
 import rw.adms.domain.tenders.vo.TenderId;
-import rw.adms.domain.tenders.vo.TenderTitle;
 
-public class ChangeTenderTitleUseCase {
+public class GetTenderUseCase {
 
     private final TenderRepository tenderRepository;
 
-    public ChangeTenderTitleUseCase(TenderRepository tenderRepository) {
+    public GetTenderUseCase(TenderRepository tenderRepository) {
         this.tenderRepository = tenderRepository;
     }
 
-    public void execute(Long tenderId, String newTitle) {
+    public Tender execute(Long tenderId) {
 
-        Tender tender = tenderRepository.findById(
+        return tenderRepository.findById(
                 new TenderId(tenderId)
         ).orElseThrow(() ->
                 new IllegalArgumentException("Tender not found"));
-
-        tender.changeTenderTitle(newTitle);
-
-        tenderRepository.save(tender);
     }
 }

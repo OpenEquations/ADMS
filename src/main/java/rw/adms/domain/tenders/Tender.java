@@ -1,12 +1,11 @@
 package rw.adms.domain.tenders;
 
-
-import rw.adms.domain.companies.Company;
 import rw.adms.domain.items.Item;
 import rw.adms.domain.tenders.enums.TenderStatus;
 import rw.adms.domain.tenders.enums.TenderType;
 import rw.adms.domain.tenders.vo.TenderId;
 import rw.adms.domain.tenders.vo.TenderTitle;
+import rw.adms.domain.company.Company;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -73,6 +72,10 @@ public class Tender {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public void changeTenderTitle(String title) {
+        this.title = new TenderTitle(title);
     }
 
     public void changeTenderStatus(TenderStatus status) {

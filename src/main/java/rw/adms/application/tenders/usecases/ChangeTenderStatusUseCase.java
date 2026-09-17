@@ -1,7 +1,7 @@
 package rw.adms.application.tenders.usecases;
 
 import rw.adms.domain.tenders.Tender;
-import rw.adms.domain.tenders.TenderStatus;
+import rw.adms.domain.tenders.enums.TenderStatus;
 import rw.adms.domain.tenders.interfaces.TenderRepository;
 import rw.adms.domain.tenders.vo.TenderId;
 
