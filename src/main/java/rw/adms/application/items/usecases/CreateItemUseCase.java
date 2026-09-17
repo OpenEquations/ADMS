@@ -1,7 +1,6 @@
 package rw.adms.application.items.usecases;
 
 import rw.adms.domain.items.Item;
-import rw.adms.domain.items.ItemStatus;
 import rw.adms.domain.items.enums.ItemStatus;
 import rw.adms.domain.items.interfaces.ItemRepository;
 import rw.adms.domain.items.vo.ItemHealth;
