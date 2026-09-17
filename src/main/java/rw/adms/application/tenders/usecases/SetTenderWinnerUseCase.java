@@ -4,16 +4,15 @@ import rw.adms.domain.company.Company;
 import rw.adms.domain.company.interfaces.CompanyRepository;
 import rw.adms.domain.company.vo.CompanyId;
 import rw.adms.domain.tenders.Tender;
-import rw.adms.domain.tenders.TenderStatus;
 import rw.adms.domain.tenders.interfaces.TenderRepository;
 import rw.adms.domain.tenders.vo.TenderId;
 
-public class ConcludeTenderUseCase {
+public class SetTenderWinnerUseCase {
 
     private final TenderRepository tenderRepository;
     private final CompanyRepository companyRepository;
 
-    public ConcludeTenderUseCase(
+    public SetTenderWinnerUseCase(
             TenderRepository tenderRepository,
             CompanyRepository companyRepository
     ) {
@@ -34,8 +33,6 @@ public class ConcludeTenderUseCase {
                 new IllegalArgumentException("Company not found"));
 
         tender.setTenderWinner(company);
-
-        tender.changeTenderStatus(TenderStatus.OVER);
 
         tenderRepository.save(tender);
     }
