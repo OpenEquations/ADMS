@@ -11,6 +11,11 @@ public class DeleteUserUseCase {
     }
 
     public void execute(Long userId) {
+
+        if (!userRepository.existsById(userId)) {
+            throw new IllegalArgumentException("User not found");
+        }
+
         userRepository.deleteById(userId);
     }
 }

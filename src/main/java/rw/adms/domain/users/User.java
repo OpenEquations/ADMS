@@ -6,7 +6,7 @@ public class User {
 
     private Long id;
     private Name name;
-    private final Password password;
+    private Password password;
     private Email email;
 
     public User(
@@ -88,6 +88,11 @@ public class User {
 
     public boolean changeEmail(String email) {
         this.email = new Email(email);
+        return true;
+    }
+
+    public boolean changePassword(String password) {
+        this.password = new Password(password);
         return true;
     }
 }

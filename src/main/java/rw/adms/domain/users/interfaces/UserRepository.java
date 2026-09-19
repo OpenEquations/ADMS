@@ -18,5 +18,7 @@ public interface UserRepository {
 
     List<User> findAll();
 
+    boolean existsById(Long id);
+
     void deleteById(Long id);
 }

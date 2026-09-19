@@ -35,4 +35,19 @@ class UserTest {
 
         assertEquals("Joseph Iradukunda", user.getName());
     }
+
+    @Test
+    void shouldChangePassword() {
+
+        User user = new User(
+                "Bonheur",
+                "Iradukunda",
+                "bonheur@example.com",
+                "password123"
+        );
+
+        user.changePassword("newPassword456");
+
+        assertEquals("newPassword456", user.getPassword());
+    }
 }
