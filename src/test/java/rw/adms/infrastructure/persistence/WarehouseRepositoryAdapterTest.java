@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import rw.adms.domain.items.Item;
 import rw.adms.domain.items.enums.ItemStatus;
+import rw.adms.domain.items.enums.ItemType;
 import rw.adms.domain.items.interfaces.ItemRepository;
 import rw.adms.domain.items.vo.ItemHealth;
 import rw.adms.domain.warehouses.Warehouse;
@@ -32,6 +33,7 @@ class WarehouseRepositoryAdapterTest {
                 "Desktop Computer",
                 "HP desktop computer",
                 ItemStatus.NEW,
+                ItemType.ELECTRONICS,
                 new ItemHealth(9),
                 LocalDate.now()
         );
@@ -114,6 +116,7 @@ class WarehouseRepositoryAdapterTest {
                 "Monitor",
                 "24 inch monitor",
                 ItemStatus.NEW,
+                ItemType.ELECTRONICS,
                 new ItemHealth(8),
                 LocalDate.now()
         );

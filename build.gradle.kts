@@ -35,6 +35,13 @@ dependencies {
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
+tasks.withType<JavaCompile> {
+	// Spring's @PathVariable/@RequestParam resolve parameter names via reflection
+	// when no explicit name is given (e.g. `@PathVariable Long id`). Without this
+	// flag, that reflection has nothing to read and every such binding fails.
+	options.compilerArgs.add("-parameters")
+}
+
 tasks.withType<Test> {
 	useJUnitPlatform()
 }

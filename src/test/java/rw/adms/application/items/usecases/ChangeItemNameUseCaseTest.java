@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import rw.adms.domain.items.Item;
 import rw.adms.domain.items.enums.ItemStatus;
+import rw.adms.domain.items.enums.ItemType;
 import rw.adms.domain.items.interfaces.ItemRepository;
 import rw.adms.domain.items.vo.ItemId;
 
@@ -27,6 +28,7 @@ class ChangeItemNameUseCaseTest {
                 "Old Printer",
                 "An old office printer",
                 ItemStatus.IN_USE,
+                ItemType.ELECTRONICS,
                 8,
                 LocalDate.now(),
                 null,

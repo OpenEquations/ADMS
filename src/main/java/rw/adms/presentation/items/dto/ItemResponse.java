@@ -2,6 +2,7 @@ package rw.adms.presentation.items.dto;
 
 import rw.adms.domain.items.Item;
 import rw.adms.domain.items.enums.ItemStatus;
+import rw.adms.domain.items.enums.ItemType;
 import rw.adms.presentation.common.MoneyResponse;
 import rw.adms.presentation.company.dto.CompanyResponse;
 
@@ -13,6 +14,7 @@ public record ItemResponse(
         String itemName,
         String itemDescription,
         ItemStatus itemStatus,
+        ItemType itemType,
         int itemHealth,
         LocalDate dateBought,
         LocalDateTime createdAt,
@@ -28,6 +30,7 @@ public record ItemResponse(
                 item.getItemName(),
                 item.getItemDescription(),
                 item.getItemStatus(),
+                item.getItemType(),
                 item.getItemHealth().getValue(),
                 item.getDateBought(),
                 item.getCreatedAt(),

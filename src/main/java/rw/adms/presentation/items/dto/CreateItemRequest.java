@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import rw.adms.domain.items.enums.ItemStatus;
+import rw.adms.domain.items.enums.ItemType;
 
 import java.time.LocalDate;
 
@@ -19,9 +20,12 @@ public record CreateItemRequest(
         @NotNull(message = "Item status is required")
         ItemStatus itemStatus,
 
+        @NotNull(message = "Item type is required")
+        ItemType itemType,
+
         @NotNull(message = "Item health is required")
-        @Min(value = 0, message = "Item health must be between 0 and 10")
-        @Max(value = 10, message = "Item health must be between 0 and 10")
+        @Min(value = 0, message = "Item health must be between 0 and 100")
+        @Max(value = 100, message = "Item health must be between 0 and 100")
         Integer itemHealth,
 
         LocalDate dateBought

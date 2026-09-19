@@ -7,6 +7,7 @@ import rw.adms.domain.companies.Company;
 import rw.adms.domain.companies.interfaces.CompanyRepository;
 import rw.adms.domain.items.Item;
 import rw.adms.domain.items.enums.ItemStatus;
+import rw.adms.domain.items.enums.ItemType;
 import rw.adms.domain.items.interfaces.ItemRepository;
 import rw.adms.domain.items.vo.ItemHealth;
 import rw.adms.domain.tenders.Tender;
@@ -56,6 +57,7 @@ class TenderRepositoryAdapterTest {
                 "Broken Generator",
                 "Generator requiring repair",
                 ItemStatus.NO_LONGER_IN_USE,
+                ItemType.OTHER,
                 new ItemHealth(3),
                 LocalDate.now()
         );

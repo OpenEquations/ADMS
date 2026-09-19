@@ -2,6 +2,7 @@ package rw.adms.infrastructure.spring.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import rw.adms.application.users.usecases.AuthenticateUserUseCase;
 import rw.adms.application.users.usecases.ChangeUserEmailUseCase;
 import rw.adms.application.users.usecases.ChangeUserNameUseCase;
 import rw.adms.application.users.usecases.ChangeUserPasswordUseCase;
@@ -54,5 +55,10 @@ public class UserUseCaseConfig {
     @Bean
     public DeleteUserUseCase deleteUserUseCase(UserRepository userRepository) {
         return new DeleteUserUseCase(userRepository);
+    }
+
+    @Bean
+    public AuthenticateUserUseCase authenticateUserUseCase(UserRepository userRepository) {
+        return new AuthenticateUserUseCase(userRepository);
     }
 }

@@ -11,7 +11,7 @@ public class CreateUserUseCase {
         this.userRepository = userRepository;
     }
 
-    public void execute(
+    public User execute(
             String firstName,
             String lastName,
             String email,
@@ -25,6 +25,6 @@ public class CreateUserUseCase {
                 password
         );
 
-        userRepository.save(user);
+        return userRepository.save(user);
     }
 }

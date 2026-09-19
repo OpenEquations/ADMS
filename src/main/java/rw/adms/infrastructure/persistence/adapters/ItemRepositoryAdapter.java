@@ -49,6 +49,7 @@ public class ItemRepositoryAdapter implements ItemRepository {
                     item.getItemName(),
                     item.getItemDescription(),
                     item.getItemStatus(),
+                    item.getItemType(),
                     item.getItemHealth().getValue(),
                     item.getDateBought(),
                     item.getCreatedAt(),
@@ -75,6 +76,10 @@ public class ItemRepositoryAdapter implements ItemRepository {
 
             entity.setItemStatus(
                     item.getItemStatus()
+            );
+
+            entity.setItemType(
+                    item.getItemType()
             );
 
             entity.setItemHealth(
@@ -248,6 +253,7 @@ public class ItemRepositoryAdapter implements ItemRepository {
                 entity.getItemName(),
                 entity.getItemDescription(),
                 entity.getItemStatus(),
+                entity.getItemType(),
                 entity.getItemHealth(),
                 entity.getDateBought(),
                 entity.getCreatedAt(),

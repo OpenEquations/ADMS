@@ -10,14 +10,17 @@ import rw.adms.application.items.usecases.ChangeItemDescriptionUseCase;
 import rw.adms.application.items.usecases.ChangeItemHealthUseCase;
 import rw.adms.application.items.usecases.ChangeItemNameUseCase;
 import rw.adms.application.items.usecases.ChangeItemStatusUseCase;
+import rw.adms.application.items.usecases.ChangeItemTypeUseCase;
 import rw.adms.application.items.usecases.CreateItemUseCase;
 import rw.adms.application.items.usecases.DeleteItemUseCase;
 import rw.adms.application.items.usecases.GetItemUseCase;
 import rw.adms.application.items.usecases.GetItemsUseCase;
 import rw.adms.domain.items.Item;
 import rw.adms.domain.items.enums.ItemStatus;
+import rw.adms.domain.items.enums.ItemType;
 import rw.adms.domain.items.vo.ItemHealth;
 import rw.adms.presentation.items.dto.ChangeItemStatusRequest;
+import rw.adms.presentation.items.dto.ChangeItemTypeRequest;
 import rw.adms.presentation.items.dto.CreateItemRequest;
 import tools.jackson.databind.ObjectMapper;
 
@@ -62,6 +65,9 @@ class ItemControllerTest {
     private ChangeItemStatusUseCase changeItemStatusUseCase;
 
     @MockitoBean
+    private ChangeItemTypeUseCase changeItemTypeUseCase;
+
+    @MockitoBean
     private ChangeItemHealthUseCase changeItemHealthUseCase;
 
     @MockitoBean
@@ -73,6 +79,7 @@ class ItemControllerTest {
                 "Old Printer",
                 "An old office printer",
                 ItemStatus.IN_USE,
+                ItemType.ELECTRONICS,
                 8,
                 LocalDate.of(2020, 1, 1),
                 null,
@@ -90,19 +97,31 @@ class ItemControllerTest {
                 "Old Printer",
                 "An old office printer",
                 ItemStatus.IN_USE,
+                ItemType.ELECTRONICS,
                 8,
                 LocalDate.of(2020, 1, 1)
         );
 
+        when(createItemUseCase.execute(
+                "Old Printer",
+                "An old office printer",
+                ItemStatus.IN_USE,
+                ItemType.ELECTRONICS,
+                new ItemHealth(8),
+                LocalDate.of(2020, 1, 1)
+        )).thenReturn(sampleItem());
+
         mockMvc.perform(post("/api/items")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated());
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.itemName").value("Old Printer"));
 
         verify(createItemUseCase).execute(
                 "Old Printer",
                 "An old office printer",
                 ItemStatus.IN_USE,
+                ItemType.ELECTRONICS,
                 new ItemHealth(8),
                 LocalDate.of(2020, 1, 1)
         );
@@ -115,7 +134,8 @@ class ItemControllerTest {
                 "Old Printer",
                 "An old office printer",
                 ItemStatus.IN_USE,
-                42,
+                ItemType.ELECTRONICS,
+                142,
                 LocalDate.of(2020, 1, 1)
         );
 
@@ -168,6 +188,19 @@ class ItemControllerTest {
                 .andExpect(status().isNoContent());
 
         verify(changeItemStatusUseCase).execute(1L, ItemStatus.SOLD);
+    }
+
+    @Test
+    void shouldChangeItemType() throws Exception {
+
+        ChangeItemTypeRequest request = new ChangeItemTypeRequest(ItemType.FURNITURE);
+
+        mockMvc.perform(patch("/api/items/{id}/type", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNoContent());
+
+        verify(changeItemTypeUseCase).execute(1L, ItemType.FURNITURE);
     }
 
     @Test

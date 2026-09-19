@@ -225,6 +225,7 @@ public class TenderRepositoryAdapter implements TenderRepository {
                 entity.getItemName(),
                 entity.getItemDescription(),
                 entity.getItemStatus(),
+                entity.getItemType(),
                 entity.getItemHealth(),
                 entity.getDateBought(),
                 entity.getCreatedAt(),

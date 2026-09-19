@@ -31,7 +31,9 @@ import rw.adms.presentation.tenders.dto.ConcludeTenderRequest;
 import rw.adms.presentation.tenders.dto.CreateTenderRequest;
 import rw.adms.presentation.tenders.dto.SetTenderWinnerRequest;
 import rw.adms.presentation.tenders.dto.TenderResponse;
+import rw.adms.domain.tenders.Tender;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -77,15 +79,17 @@ public class TenderController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> create(@Valid @RequestBody CreateTenderRequest request) {
+    public ResponseEntity<TenderResponse> create(@Valid @RequestBody CreateTenderRequest request) {
 
-        createTenderUseCase.execute(
+        Tender tender = createTenderUseCase.execute(
                 request.title(),
                 request.description(),
                 request.type()
         );
 
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return ResponseEntity
+                .created(URI.create("/api/tenders/" + tender.getId().getValue()))
+                .body(TenderResponse.from(tender));
     }
 
     @GetMapping
@@ -100,7 +104,7 @@ public class TenderController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TenderResponse> getById(@PathVariable Long id) {
+    public ResponseEntity<TenderResponse> getById(@PathVariable("id") Long id) {
 
         return ResponseEntity.ok(
                 TenderResponse.from(getTenderUseCase.execute(id))
@@ -108,7 +112,7 @@ public class TenderController {
     }
 
     @GetMapping("/{id}/items")
-    public ResponseEntity<List<ItemResponse>> getItems(@PathVariable Long id) {
+    public ResponseEntity<List<ItemResponse>> getItems(@PathVariable("id") Long id) {
 
         List<ItemResponse> items = getTenderItemsUseCase.execute(id)
                 .stream()
@@ -120,7 +124,7 @@ public class TenderController {
 
     @PostMapping("/{id}/items")
     public ResponseEntity<Void> addItem(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody AddItemToTenderRequest request
     ) {
         addItemToTenderUseCase.execute(id, request.itemId());
@@ -129,7 +133,7 @@ public class TenderController {
 
     @PatchMapping("/{id}/title")
     public ResponseEntity<Void> changeTitle(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody ChangeTenderTitleRequest request
     ) {
         changeTenderTitleUseCase.execute(id, request.title());
@@ -138,7 +142,7 @@ public class TenderController {
 
     @PatchMapping("/{id}/description")
     public ResponseEntity<Void> changeDescription(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody ChangeTenderDescriptionRequest request
     ) {
         changeTenderDescriptionUseCase.execute(id, request.description());
@@ -147,7 +151,7 @@ public class TenderController {
 
     @PatchMapping("/{id}/status")
     public ResponseEntity<Void> changeStatus(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody ChangeTenderStatusRequest request
     ) {
         changeTenderStatusUseCase.execute(id, request.status());
@@ -156,7 +160,7 @@ public class TenderController {
 
     @PatchMapping("/{id}/winner")
     public ResponseEntity<Void> setWinner(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody SetTenderWinnerRequest request
     ) {
         setTenderWinnerUseCase.execute(id, request.companyId());
@@ -165,7 +169,7 @@ public class TenderController {
 
     @PostMapping("/{id}/conclude")
     public ResponseEntity<Void> conclude(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody ConcludeTenderRequest request
     ) {
         concludeTenderUseCase.execute(id, request.companyId());
@@ -173,7 +177,7 @@ public class TenderController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable("id") Long id) {
         deleteTenderUseCase.execute(id);
         return ResponseEntity.noContent().build();
     }

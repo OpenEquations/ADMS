@@ -25,7 +25,9 @@ import rw.adms.presentation.warehouses.dto.AddItemToWarehouseRequest;
 import rw.adms.presentation.warehouses.dto.ChangeWarehouseNameRequest;
 import rw.adms.presentation.warehouses.dto.CreateWarehouseRequest;
 import rw.adms.presentation.warehouses.dto.WarehouseResponse;
+import rw.adms.domain.warehouses.Warehouse;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -65,11 +67,13 @@ public class WarehouseController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> create(@Valid @RequestBody CreateWarehouseRequest request) {
+    public ResponseEntity<WarehouseResponse> create(@Valid @RequestBody CreateWarehouseRequest request) {
 
-        createWarehouseUseCase.execute(request.name());
+        Warehouse warehouse = createWarehouseUseCase.execute(request.name());
 
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return ResponseEntity
+                .created(URI.create("/api/warehouses/" + warehouse.getId().getValue()))
+                .body(WarehouseResponse.from(warehouse));
     }
 
     @GetMapping
@@ -84,7 +88,7 @@ public class WarehouseController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<WarehouseResponse> getById(@PathVariable Long id) {
+    public ResponseEntity<WarehouseResponse> getById(@PathVariable("id") Long id) {
 
         return ResponseEntity.ok(
                 WarehouseResponse.from(getWarehouseUseCase.execute(id))
@@ -92,7 +96,7 @@ public class WarehouseController {
     }
 
     @GetMapping("/{id}/items")
-    public ResponseEntity<List<ItemResponse>> getItems(@PathVariable Long id) {
+    public ResponseEntity<List<ItemResponse>> getItems(@PathVariable("id") Long id) {
 
         List<ItemResponse> items = getWarehouseItemsUseCase.execute(id)
                 .stream()
@@ -104,8 +108,8 @@ public class WarehouseController {
 
     @GetMapping("/{id}/items/{itemId}")
     public ResponseEntity<ItemResponse> getItem(
-            @PathVariable Long id,
-            @PathVariable Long itemId
+            @PathVariable("id") Long id,
+            @PathVariable("itemId") Long itemId
     ) {
         return ResponseEntity.ok(
                 ItemResponse.from(getWarehouseItemUseCase.execute(id, itemId))
@@ -114,7 +118,7 @@ public class WarehouseController {
 
     @PostMapping("/{id}/items")
     public ResponseEntity<Void> addItem(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody AddItemToWarehouseRequest request
     ) {
         addItemToWarehouseUseCase.execute(id, request.itemId());
@@ -123,8 +127,8 @@ public class WarehouseController {
 
     @DeleteMapping("/{id}/items/{itemId}")
     public ResponseEntity<Void> removeItem(
-            @PathVariable Long id,
-            @PathVariable Long itemId
+            @PathVariable("id") Long id,
+            @PathVariable("itemId") Long itemId
     ) {
         removeItemFromWarehouseUseCase.execute(id, itemId);
         return ResponseEntity.noContent().build();
@@ -132,7 +136,7 @@ public class WarehouseController {
 
     @PatchMapping("/{id}/name")
     public ResponseEntity<Void> changeName(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody ChangeWarehouseNameRequest request
     ) {
         changeWarehouseNameUseCase.execute(id, request.name());
@@ -140,7 +144,7 @@ public class WarehouseController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable("id") Long id) {
         deleteWarehouseUseCase.execute(id);
         return ResponseEntity.noContent().build();
     }

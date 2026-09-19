@@ -66,10 +66,19 @@ class UserControllerTest {
                 "Bonheur", "Iradukunda", "bonheur@example.com", "password123"
         );
 
+        User createdUser = User.reconstitute(
+                1L, "Bonheur", "Iradukunda", "bonheur@example.com", "password123"
+        );
+
+        when(createUserUseCase.execute(
+                "Bonheur", "Iradukunda", "bonheur@example.com", "password123"
+        )).thenReturn(createdUser);
+
         mockMvc.perform(post("/api/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated());
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.email").value("bonheur@example.com"));
 
         verify(createUserUseCase).execute(
                 "Bonheur", "Iradukunda", "bonheur@example.com", "password123"

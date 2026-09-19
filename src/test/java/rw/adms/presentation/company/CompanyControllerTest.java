@@ -61,10 +61,15 @@ class CompanyControllerTest {
 
         CreateCompanyRequest request = new CreateCompanyRequest("ACME Rwanda", "contact@acme.rw");
 
+        Company createdCompany = Company.reconstitute(1L, "ACME Rwanda", "contact@acme.rw");
+
+        when(createCompanyUseCase.execute("ACME Rwanda", "contact@acme.rw")).thenReturn(createdCompany);
+
         mockMvc.perform(post("/api/companies")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated());
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name").value("ACME Rwanda"));
 
         verify(createCompanyUseCase).execute("ACME Rwanda", "contact@acme.rw");
     }

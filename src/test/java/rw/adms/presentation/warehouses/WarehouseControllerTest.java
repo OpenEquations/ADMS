@@ -17,6 +17,7 @@ import rw.adms.application.warehouses.usecases.GetWarehousesUseCase;
 import rw.adms.application.warehouses.usecases.RemoveItemFromWarehouseUseCase;
 import rw.adms.domain.items.Item;
 import rw.adms.domain.items.enums.ItemStatus;
+import rw.adms.domain.items.enums.ItemType;
 import rw.adms.domain.warehouses.Warehouse;
 import rw.adms.presentation.warehouses.dto.AddItemToWarehouseRequest;
 import rw.adms.presentation.warehouses.dto.ChangeWarehouseNameRequest;
@@ -81,10 +82,13 @@ class WarehouseControllerTest {
 
         CreateWarehouseRequest request = new CreateWarehouseRequest("Main Warehouse");
 
+        when(createWarehouseUseCase.execute("Main Warehouse")).thenReturn(sampleWarehouse());
+
         mockMvc.perform(post("/api/warehouses")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated());
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name").value("Main Warehouse"));
 
         verify(createWarehouseUseCase).execute("Main Warehouse");
     }
@@ -135,7 +139,7 @@ class WarehouseControllerTest {
     void shouldReturnWarehouseItems() throws Exception {
 
         Item item = Item.reconstitute(
-                1L, "Old Printer", "Desc", ItemStatus.IN_USE, 8,
+                1L, "Old Printer", "Desc", ItemStatus.IN_USE, ItemType.ELECTRONICS, 8,
                 LocalDate.now(), null, null, null, null, null
         );
 

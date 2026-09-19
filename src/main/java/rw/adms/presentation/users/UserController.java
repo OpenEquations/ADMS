@@ -1,7 +1,6 @@
 package rw.adms.presentation.users;
 
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,6 +24,7 @@ import rw.adms.presentation.users.dto.ChangeUserPasswordRequest;
 import rw.adms.presentation.users.dto.CreateUserRequest;
 import rw.adms.presentation.users.dto.UserResponse;
 
+import java.net.URI;
 import java.util.List;
 
 /**
@@ -63,16 +63,18 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> create(@Valid @RequestBody CreateUserRequest request) {
+    public ResponseEntity<UserResponse> create(@Valid @RequestBody CreateUserRequest request) {
 
-        createUserUseCase.execute(
+        User user = createUserUseCase.execute(
                 request.firstName(),
                 request.lastName(),
                 request.email(),
                 request.password()
         );
 
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return ResponseEntity
+                .created(URI.create("/api/users/" + user.getId()))
+                .body(UserResponse.from(user));
     }
 
     @GetMapping
@@ -87,7 +89,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> getById(@PathVariable Long id) {
+    public ResponseEntity<UserResponse> getById(@PathVariable("id") Long id) {
 
         User user = getUserUseCase.execute(id)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
@@ -97,7 +99,7 @@ public class UserController {
 
     @PatchMapping("/{id}/name")
     public ResponseEntity<Void> changeName(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody ChangeUserNameRequest request
     ) {
         changeUserNameUseCase.execute(id, request.firstName(), request.lastName());
@@ -106,7 +108,7 @@ public class UserController {
 
     @PatchMapping("/{id}/email")
     public ResponseEntity<Void> changeEmail(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody ChangeUserEmailRequest request
     ) {
         changeUserEmailUseCase.execute(id, request.email());
@@ -115,7 +117,7 @@ public class UserController {
 
     @PatchMapping("/{id}/password")
     public ResponseEntity<Void> changePassword(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody ChangeUserPasswordRequest request
     ) {
         changeUserPasswordUseCase.execute(id, request.password());
@@ -123,7 +125,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable("id") Long id) {
         deleteUserUseCase.execute(id);
         return ResponseEntity.noContent().build();
     }

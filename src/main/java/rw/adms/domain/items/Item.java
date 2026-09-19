@@ -2,6 +2,7 @@ package rw.adms.domain.items;
 
 import rw.adms.domain.companies.Company;
 import rw.adms.domain.items.enums.ItemStatus;
+import rw.adms.domain.items.enums.ItemType;
 import rw.adms.domain.items.vo.ItemHealth;
 import rw.adms.domain.items.vo.ItemId;
 import rw.adms.domain.shared.vo.Money;
@@ -15,6 +16,7 @@ public class Item {
     private String itemName;
     private String itemDescription;
     private ItemStatus itemStatus;
+    private ItemType itemType;
     private ItemHealth itemHealth;
 
     private LocalDate dateBought;
@@ -30,12 +32,14 @@ public class Item {
             String itemName,
             String itemDescription,
             ItemStatus itemStatus,
+            ItemType itemType,
             ItemHealth itemHealth,
             LocalDate dateBought
     ) {
         this.itemName = itemName;
         this.itemDescription = itemDescription;
         this.itemStatus = itemStatus;
+        this.itemType = itemType;
         this.itemHealth = itemHealth;
         this.dateBought = dateBought;
 
@@ -48,6 +52,7 @@ public class Item {
             String itemName,
             String itemDescription,
             ItemStatus itemStatus,
+            ItemType itemType,
             ItemHealth itemHealth,
             LocalDate dateBought,
             LocalDateTime createdAt,
@@ -60,6 +65,7 @@ public class Item {
         this.itemName = itemName;
         this.itemDescription = itemDescription;
         this.itemStatus = itemStatus;
+        this.itemType = itemType;
         this.itemHealth = itemHealth;
         this.dateBought = dateBought;
         this.createdAt = createdAt;
@@ -74,6 +80,7 @@ public class Item {
             String itemName,
             String itemDescription,
             ItemStatus itemStatus,
+            ItemType itemType,
             int itemHealth,
             LocalDate dateBought,
             LocalDateTime createdAt,
@@ -87,6 +94,7 @@ public class Item {
                 itemName,
                 itemDescription,
                 itemStatus,
+                itemType,
                 new ItemHealth(itemHealth),
                 dateBought,
                 createdAt,
@@ -111,6 +119,10 @@ public class Item {
 
     public ItemStatus getItemStatus() {
         return itemStatus;
+    }
+
+    public ItemType getItemType() {
+        return itemType;
     }
 
     public ItemHealth getItemHealth() {
@@ -169,6 +181,17 @@ public class Item {
         }
 
         this.itemStatus = itemStatus;
+        touch();
+
+        return true;
+    }
+
+    public boolean updateItemType(ItemType itemType) {
+        if (itemType == null) {
+            return false;
+        }
+
+        this.itemType = itemType;
         touch();
 
         return true;

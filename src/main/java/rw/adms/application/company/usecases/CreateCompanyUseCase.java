@@ -11,7 +11,7 @@ public class CreateCompanyUseCase {
         this.companyRepository = companyRepository;
     }
 
-    public void execute(
+    public Company execute(
             String companyName,
             String companyEmail
     ) {
@@ -21,6 +21,6 @@ public class CreateCompanyUseCase {
                 companyEmail
         );
 
-        companyRepository.save(company);
+        return companyRepository.save(company);
     }
 }

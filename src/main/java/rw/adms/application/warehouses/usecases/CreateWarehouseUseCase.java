@@ -11,10 +11,10 @@ public class CreateWarehouseUseCase {
         this.warehouseRepository = warehouseRepository;
     }
 
-    public void execute(String warehouseName) {
+    public Warehouse execute(String warehouseName) {
 
         Warehouse warehouse = new Warehouse(warehouseName);
 
-        warehouseRepository.save(warehouse);
+        return warehouseRepository.save(warehouse);
     }
 }

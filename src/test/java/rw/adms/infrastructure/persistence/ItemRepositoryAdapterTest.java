@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import rw.adms.domain.items.Item;
 import rw.adms.domain.items.enums.ItemStatus;
+import rw.adms.domain.items.enums.ItemType;
 import rw.adms.domain.items.interfaces.ItemRepository;
 import rw.adms.domain.items.vo.ItemHealth;
 import rw.adms.domain.shared.vo.Money;
@@ -29,6 +30,7 @@ class ItemRepositoryAdapterTest {
                 "Laptop",
                 "Dell Latitude laptop",
                 ItemStatus.NEW,
+                ItemType.ELECTRONICS,
                 new ItemHealth(9),
                 LocalDate.now()
         );
@@ -70,6 +72,7 @@ class ItemRepositoryAdapterTest {
                 "Old Laptop",
                 "Laptop description",
                 ItemStatus.NEW,
+                ItemType.ELECTRONICS,
                 new ItemHealth(8),
                 LocalDate.now()
         );
@@ -105,6 +108,7 @@ class ItemRepositoryAdapterTest {
                 "Printer",
                 "Office printer",
                 ItemStatus.NEW,
+                ItemType.ELECTRONICS,
                 new ItemHealth(7),
                 LocalDate.now()
         );

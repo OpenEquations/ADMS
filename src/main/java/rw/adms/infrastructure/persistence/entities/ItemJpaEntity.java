@@ -2,6 +2,7 @@ package rw.adms.infrastructure.persistence.entities;
 
 import jakarta.persistence.*;
 import rw.adms.domain.items.enums.ItemStatus;
+import rw.adms.domain.items.enums.ItemType;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -24,6 +25,11 @@ public class ItemJpaEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ItemStatus itemStatus;
+
+    // Nullable at the DB level so rows created before this field existed
+    // remain valid; the API requires it on every new item going forward.
+    @Enumerated(EnumType.STRING)
+    private ItemType itemType;
 
     @Column(nullable = false)
     private Integer itemHealth;
@@ -55,6 +61,7 @@ public class ItemJpaEntity {
             String itemName,
             String itemDescription,
             ItemStatus itemStatus,
+            ItemType itemType,
             Integer itemHealth,
             LocalDate dateBought,
             LocalDateTime createdAt,
@@ -63,6 +70,7 @@ public class ItemJpaEntity {
         this.itemName = itemName;
         this.itemDescription = itemDescription;
         this.itemStatus = itemStatus;
+        this.itemType = itemType;
         this.itemHealth = itemHealth;
         this.dateBought = dateBought;
         this.createdAt = createdAt;
@@ -83,6 +91,10 @@ public class ItemJpaEntity {
 
     public ItemStatus getItemStatus() {
         return itemStatus;
+    }
+
+    public ItemType getItemType() {
+        return itemType;
     }
 
     public Integer getItemHealth() {
@@ -131,6 +143,10 @@ public class ItemJpaEntity {
 
     public void setItemStatus(ItemStatus itemStatus) {
         this.itemStatus = itemStatus;
+    }
+
+    public void setItemType(ItemType itemType) {
+        this.itemType = itemType;
     }
 
     public void setItemHealth(Integer itemHealth) {

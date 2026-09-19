@@ -2,6 +2,7 @@ package rw.adms.application.items.usecases;
 
 import rw.adms.domain.items.Item;
 import rw.adms.domain.items.enums.ItemStatus;
+import rw.adms.domain.items.enums.ItemType;
 import rw.adms.domain.items.interfaces.ItemRepository;
 import rw.adms.domain.items.vo.ItemHealth;
 
@@ -15,10 +16,11 @@ public class CreateItemUseCase {
         this.itemRepository = itemRepository;
     }
 
-    public void execute(
+    public Item execute(
             String itemName,
             String itemDescription,
             ItemStatus itemStatus,
+            ItemType itemType,
             ItemHealth itemHealth,
             LocalDate dateBought
     ) {
@@ -27,10 +29,11 @@ public class CreateItemUseCase {
                 itemName,
                 itemDescription,
                 itemStatus,
+                itemType,
                 itemHealth,
                 dateBought
         );
 
-        itemRepository.save(item);
+        return itemRepository.save(item);
     }
 }

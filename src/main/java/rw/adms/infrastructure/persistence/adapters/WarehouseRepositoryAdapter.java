@@ -180,6 +180,7 @@ public class WarehouseRepositoryAdapter
                 entity.getItemName(),
                 entity.getItemDescription(),
                 entity.getItemStatus(),
+                entity.getItemType(),
                 entity.getItemHealth(),
                 entity.getDateBought(),
                 entity.getCreatedAt(),

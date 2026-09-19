@@ -13,7 +13,7 @@ public class CreateTenderUseCase {
         this.tenderRepository = tenderRepository;
     }
 
-    public void execute(
+    public Tender execute(
             String title,
             String description,
             TenderType type
@@ -25,6 +25,6 @@ public class CreateTenderUseCase {
                 type
         );
 
-        tenderRepository.save(tender);
+        return tenderRepository.save(tender);
     }
 }

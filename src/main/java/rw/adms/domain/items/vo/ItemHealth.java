@@ -5,9 +5,9 @@ public final class ItemHealth {
     private final int value;
 
     public ItemHealth(int value) {
-        if (value < 0 || value > 10) {
+        if (value < 0 || value > 100) {
             throw new IllegalArgumentException(
-                    "Item health must be between 0 and 10"
+                    "Item health must be between 0 and 100"
             );
         }
 

@@ -6,6 +6,7 @@ import rw.adms.application.items.usecases.ChangeItemDescriptionUseCase;
 import rw.adms.application.items.usecases.ChangeItemHealthUseCase;
 import rw.adms.application.items.usecases.ChangeItemNameUseCase;
 import rw.adms.application.items.usecases.ChangeItemStatusUseCase;
+import rw.adms.application.items.usecases.ChangeItemTypeUseCase;
 import rw.adms.application.items.usecases.CreateItemUseCase;
 import rw.adms.application.items.usecases.DeleteItemUseCase;
 import rw.adms.application.items.usecases.GetItemUseCase;
@@ -46,6 +47,11 @@ public class ItemUseCaseConfig {
     @Bean
     public ChangeItemStatusUseCase changeItemStatusUseCase(ItemRepository itemRepository) {
         return new ChangeItemStatusUseCase(itemRepository);
+    }
+
+    @Bean
+    public ChangeItemTypeUseCase changeItemTypeUseCase(ItemRepository itemRepository) {
+        return new ChangeItemTypeUseCase(itemRepository);
     }
 
     @Bean

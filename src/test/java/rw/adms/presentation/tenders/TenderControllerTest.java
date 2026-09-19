@@ -19,6 +19,7 @@ import rw.adms.application.tenders.usecases.GetTendersUseCase;
 import rw.adms.application.tenders.usecases.SetTenderWinnerUseCase;
 import rw.adms.domain.items.Item;
 import rw.adms.domain.items.enums.ItemStatus;
+import rw.adms.domain.items.enums.ItemType;
 import rw.adms.domain.tenders.Tender;
 import rw.adms.domain.tenders.enums.TenderStatus;
 import rw.adms.domain.tenders.enums.TenderType;
@@ -102,10 +103,17 @@ class TenderControllerTest {
                 TenderType.SELLING_TENDER
         );
 
+        when(createTenderUseCase.execute(
+                "Office equipment tender",
+                "Selling old office equipment",
+                TenderType.SELLING_TENDER
+        )).thenReturn(sampleTender());
+
         mockMvc.perform(post("/api/tenders")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated());
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.title").value("Office equipment tender"));
 
         verify(createTenderUseCase).execute(
                 "Office equipment tender",
@@ -163,7 +171,7 @@ class TenderControllerTest {
     void shouldReturnTenderItems() throws Exception {
 
         Item item = Item.reconstitute(
-                1L, "Old Printer", "Desc", ItemStatus.NO_LONGER_IN_USE, 3,
+                1L, "Old Printer", "Desc", ItemStatus.NO_LONGER_IN_USE, ItemType.ELECTRONICS, 3,
                 LocalDate.now(), null, null, null, null, null
         );
 

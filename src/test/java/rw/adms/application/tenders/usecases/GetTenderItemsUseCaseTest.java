@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import rw.adms.domain.items.Item;
 import rw.adms.domain.items.enums.ItemStatus;
+import rw.adms.domain.items.enums.ItemType;
 import rw.adms.domain.tenders.Tender;
 import rw.adms.domain.tenders.enums.TenderStatus;
 import rw.adms.domain.tenders.enums.TenderType;
@@ -31,6 +32,7 @@ class GetTenderItemsUseCaseTest {
                 "Old Printer",
                 "An old office printer",
                 ItemStatus.NO_LONGER_IN_USE,
+                ItemType.ELECTRONICS,
                 3,
                 LocalDate.now(),
                 null,
