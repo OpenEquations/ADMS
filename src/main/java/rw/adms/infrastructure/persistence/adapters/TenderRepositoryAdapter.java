@@ -1,6 +1,7 @@
 package rw.adms.infrastructure.persistence.adapters;
 
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import rw.adms.domain.companies.Company;
 import rw.adms.domain.items.Item;
 import rw.adms.domain.items.enums.ItemStatus;
@@ -15,10 +16,18 @@ import rw.adms.infrastructure.persistence.repositories.SpringDataCompanyReposito
 import rw.adms.infrastructure.persistence.repositories.SpringDataItemRepository;
 import rw.adms.infrastructure.persistence.repositories.SpringDataTenderRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+/**
+ * Class-level {@code @Transactional}: Tender carries lazy {@code items} and
+ * {@code tenderWinner} associations, so the session needs to stay open
+ * across the read AND the entity-to-domain mapping below.
+ */
 @Repository
+@Transactional
 public class TenderRepositoryAdapter implements TenderRepository {
 
     private final SpringDataTenderRepository tenderRepository;
@@ -81,6 +90,9 @@ public class TenderRepositoryAdapter implements TenderRepository {
         // Items
         // -------------------------
 
+        // Mutable list: Hibernate's merge reconciles a many-to-many
+        // collection in place (clear() + repopulate), so an immutable
+        // List (e.g. from Stream.toList()) would blow up here.
         List<ItemJpaEntity> itemEntities =
                 tender.getItems()
                         .stream()
@@ -94,7 +106,7 @@ public class TenderRepositoryAdapter implements TenderRepository {
                                         )
                                 )
                         )
-                        .toList();
+                        .collect(Collectors.toCollection(ArrayList::new));
 
         entity.setItems(itemEntities);
 

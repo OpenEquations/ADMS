@@ -1,6 +1,7 @@
 package rw.adms.infrastructure.persistence.adapters;
 
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import rw.adms.domain.companies.Company;
 import rw.adms.domain.items.Item;
 import rw.adms.domain.items.enums.ItemStatus;
@@ -17,7 +18,13 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Class-level {@code @Transactional}: Item carries a lazy {@code soldTo}
+ * association, so the session needs to stay open across the read AND the
+ * entity-to-domain mapping below.
+ */
 @Repository
+@Transactional
 public class ItemRepositoryAdapter implements ItemRepository {
 
     private final SpringDataItemRepository itemRepository;

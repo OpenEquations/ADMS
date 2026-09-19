@@ -1,6 +1,7 @@
 package rw.adms.infrastructure.persistence.adapters;
 
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import rw.adms.domain.items.Item;
 import rw.adms.domain.warehouses.Warehouse;
 import rw.adms.domain.warehouses.interfaces.WarehouseRepository;
@@ -11,10 +12,18 @@ import rw.adms.infrastructure.persistence.entities.WarehouseJpaEntity;
 import rw.adms.infrastructure.persistence.repositories.SpringDataItemRepository;
 import rw.adms.infrastructure.persistence.repositories.SpringDataWarehouseRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+/**
+ * Class-level {@code @Transactional}: Warehouse carries a lazy {@code items}
+ * association, so the session needs to stay open across the read AND the
+ * entity-to-domain mapping below - not just the Spring Data call itself.
+ */
 @Repository
+@Transactional
 public class WarehouseRepositoryAdapter
         implements WarehouseRepository {
 
@@ -60,6 +69,9 @@ public class WarehouseRepositoryAdapter
         // Items
         // -------------------------
 
+        // Mutable list: Hibernate's merge reconciles a many-to-many
+        // collection in place (clear() + repopulate), so an immutable
+        // List (e.g. from Stream.toList()) would blow up here.
         List<ItemJpaEntity> itemEntities =
                 warehouse.getItems()
                         .stream()
@@ -73,7 +85,7 @@ public class WarehouseRepositoryAdapter
                                         )
                                 )
                         )
-                        .toList();
+                        .collect(Collectors.toCollection(ArrayList::new));
 
         entity.setItems(itemEntities);
 
