@@ -6,6 +6,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import rw.adms.application.auth.usecases.ValidateSessionUseCase;
 import rw.adms.application.warehouses.usecases.AddItemToWarehouseUseCase;
 import rw.adms.application.warehouses.usecases.ChangeWarehouseNameUseCase;
 import rw.adms.application.warehouses.usecases.CreateWarehouseUseCase;
@@ -45,6 +46,10 @@ class WarehouseControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    /** Pulled in by every @WebMvcTest via the app's global argument resolver. */
+    @MockitoBean
+    private ValidateSessionUseCase validateSessionUseCase;
 
     @MockitoBean
     private CreateWarehouseUseCase createWarehouseUseCase;

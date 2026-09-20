@@ -22,5 +22,7 @@ public interface UserRepository {
 
     boolean existsById(Long id);
 
+    boolean existsAny();
+
     void deleteById(Long id);
 }

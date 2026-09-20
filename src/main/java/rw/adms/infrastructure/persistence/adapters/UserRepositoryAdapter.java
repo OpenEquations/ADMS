@@ -2,10 +2,12 @@ package rw.adms.infrastructure.persistence.adapters;
 
 import org.springframework.stereotype.Repository;
 import rw.adms.domain.users.User;
+import rw.adms.domain.users.enums.Permission;
 import rw.adms.domain.users.interfaces.UserRepository;
 import rw.adms.infrastructure.persistence.entities.UserJpaEntity;
 import rw.adms.infrastructure.persistence.repositories.SpringDataUserRepository;
 
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,7 +33,8 @@ public class UserRepositoryAdapter implements UserRepository {
                     user.getFirstName(),
                     user.getLastName(),
                     user.getEmail(),
-                    user.getPassword()
+                    user.getPassword(),
+                    user.getRole()
             );
 
         } else {
@@ -60,48 +63,36 @@ public class UserRepositoryAdapter implements UserRepository {
             entity.setPassword(
                     user.getPassword()
             );
+
+            entity.setRole(
+                    user.getRole()
+            );
         }
+
+        entity.setPermissions(
+                user.getPermissions().isEmpty()
+                        ? EnumSet.noneOf(Permission.class)
+                        : EnumSet.copyOf(user.getPermissions())
+        );
 
         UserJpaEntity savedEntity =
                 repository.save(entity);
 
-        return User.reconstitute(
-                savedEntity.getId(),
-                savedEntity.getFirstName(),
-                savedEntity.getLastName(),
-                savedEntity.getEmail(),
-                savedEntity.getPassword()
-        );
+        return toDomain(savedEntity);
     }
 
     @Override
     public Optional<User> findById(Long id) {
 
         return repository.findById(id)
-                .map(entity ->
-                        User.reconstitute(
-                                entity.getId(),
-                                entity.getFirstName(),
-                                entity.getLastName(),
-                                entity.getEmail(),
-                                entity.getPassword()
-                        )
-                );
+                .map(this::toDomain);
     }
 
     @Override
     public Optional<User> findByEmail(String email) {
 
         return repository.findByEmail(email)
-                .map(entity ->
-                        User.reconstitute(
-                                entity.getId(),
-                                entity.getFirstName(),
-                                entity.getLastName(),
-                                entity.getEmail(),
-                                entity.getPassword()
-                        )
-                );
+                .map(this::toDomain);
     }
 
     @Override
@@ -109,15 +100,7 @@ public class UserRepositoryAdapter implements UserRepository {
 
         return repository.findAll()
                 .stream()
-                .map(entity ->
-                        User.reconstitute(
-                                entity.getId(),
-                                entity.getFirstName(),
-                                entity.getLastName(),
-                                entity.getEmail(),
-                                entity.getPassword()
-                        )
-                )
+                .map(this::toDomain)
                 .toList();
     }
 
@@ -128,8 +111,27 @@ public class UserRepositoryAdapter implements UserRepository {
     }
 
     @Override
+    public boolean existsAny() {
+
+        return repository.count() > 0;
+    }
+
+    @Override
     public void deleteById(Long id) {
 
         repository.deleteById(id);
+    }
+
+    private User toDomain(UserJpaEntity entity) {
+
+        return User.reconstitute(
+                entity.getId(),
+                entity.getFirstName(),
+                entity.getLastName(),
+                entity.getEmail(),
+                entity.getPassword(),
+                entity.getRole(),
+                entity.getPermissions()
+        );
     }
 }

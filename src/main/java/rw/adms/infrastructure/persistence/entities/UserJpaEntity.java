@@ -1,6 +1,11 @@
 package rw.adms.infrastructure.persistence.entities;
 
 import jakarta.persistence.*;
+import rw.adms.domain.users.enums.Permission;
+import rw.adms.domain.users.enums.UserRole;
+
+import java.util.EnumSet;
+import java.util.Set;
 
 @Entity
 @Table(
@@ -30,6 +35,16 @@ public class UserJpaEntity {
     @Column(nullable = false)
     private String password;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserRole role;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_permissions", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "permission", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Set<Permission> permissions = EnumSet.noneOf(Permission.class);
+
     protected UserJpaEntity() {
     }
 
@@ -37,12 +52,14 @@ public class UserJpaEntity {
             String firstName,
             String lastName,
             String email,
-            String password
+            String password,
+            UserRole role
     ) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.password = password;
+        this.role = role;
     }
 
     public Long getId() {
@@ -65,6 +82,14 @@ public class UserJpaEntity {
         return password;
     }
 
+    public UserRole getRole() {
+        return role;
+    }
+
+    public Set<Permission> getPermissions() {
+        return permissions;
+    }
+
     public void setFirstName(String firstName) {
         this.firstName = firstName;
     }
@@ -79,5 +104,13 @@ public class UserJpaEntity {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public void setRole(UserRole role) {
+        this.role = role;
+    }
+
+    public void setPermissions(Set<Permission> permissions) {
+        this.permissions = permissions;
     }
 }

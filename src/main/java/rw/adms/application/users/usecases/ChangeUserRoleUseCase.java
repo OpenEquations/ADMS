@@ -5,28 +5,34 @@ import rw.adms.domain.users.User;
 import rw.adms.domain.users.enums.UserRole;
 import rw.adms.domain.users.interfaces.UserRepository;
 
-public class DeleteUserUseCase {
+public class ChangeUserRoleUseCase {
 
     private final UserRepository userRepository;
 
-    public DeleteUserUseCase(UserRepository userRepository) {
+    public ChangeUserRoleUseCase(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
-    public void execute(Long userId, UserRole actingRole) {
+    public void execute(Long userId, UserRole newRole, UserRole actingRole) {
 
         if (actingRole != UserRole.SUPERADMIN) {
-            throw new ForbiddenException("Only a superadmin can delete users");
+            throw new ForbiddenException("Only a superadmin can change user roles");
         }
 
         User target = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        if (target.getRole() == UserRole.SUPERADMIN && isLastSuperAdmin()) {
-            throw new IllegalArgumentException("Cannot delete the last superadmin");
+        boolean demotingLastSuperAdmin = target.getRole() == UserRole.SUPERADMIN
+                && newRole != UserRole.SUPERADMIN
+                && isLastSuperAdmin();
+
+        if (demotingLastSuperAdmin) {
+            throw new IllegalArgumentException("Cannot remove the last superadmin");
         }
 
-        userRepository.deleteById(userId);
+        target.changeRole(newRole);
+
+        userRepository.save(target);
     }
 
     private boolean isLastSuperAdmin() {

@@ -13,15 +13,22 @@ import org.springframework.web.bind.annotation.RestController;
 import rw.adms.application.users.usecases.ChangeUserEmailUseCase;
 import rw.adms.application.users.usecases.ChangeUserNameUseCase;
 import rw.adms.application.users.usecases.ChangeUserPasswordUseCase;
+import rw.adms.application.users.usecases.ChangeUserRoleUseCase;
 import rw.adms.application.users.usecases.CreateUserUseCase;
 import rw.adms.application.users.usecases.DeleteUserUseCase;
 import rw.adms.application.users.usecases.GetUserUseCase;
 import rw.adms.application.users.usecases.GetUsersUseCase;
+import rw.adms.application.users.usecases.GrantPermissionUseCase;
+import rw.adms.application.users.usecases.RevokePermissionUseCase;
 import rw.adms.domain.users.User;
+import rw.adms.domain.users.enums.Permission;
+import rw.adms.presentation.security.CurrentUser;
 import rw.adms.presentation.users.dto.ChangeUserEmailRequest;
 import rw.adms.presentation.users.dto.ChangeUserNameRequest;
 import rw.adms.presentation.users.dto.ChangeUserPasswordRequest;
+import rw.adms.presentation.users.dto.ChangeUserRoleRequest;
 import rw.adms.presentation.users.dto.CreateUserRequest;
+import rw.adms.presentation.users.dto.GrantPermissionRequest;
 import rw.adms.presentation.users.dto.UserResponse;
 
 import java.net.URI;
@@ -31,6 +38,11 @@ import java.util.List;
  * HTTP entry point for the users bounded context. Translates requests into
  * use case calls and use case results into response DTOs - no business logic
  * lives here.
+ * <p>
+ * {@code @CurrentUser} resolves the caller from their bearer token; use
+ * cases that mutate role/permissions/membership take the caller's role and
+ * decide there whether the action is allowed (superadmin-only, except the
+ * very first user ever created, which needs no actor to exist yet).
  */
 @RestController
 @RequestMapping("/api/users")
@@ -42,6 +54,9 @@ public class UserController {
     private final ChangeUserNameUseCase changeUserNameUseCase;
     private final ChangeUserEmailUseCase changeUserEmailUseCase;
     private final ChangeUserPasswordUseCase changeUserPasswordUseCase;
+    private final ChangeUserRoleUseCase changeUserRoleUseCase;
+    private final GrantPermissionUseCase grantPermissionUseCase;
+    private final RevokePermissionUseCase revokePermissionUseCase;
     private final DeleteUserUseCase deleteUserUseCase;
 
     public UserController(
@@ -51,6 +66,9 @@ public class UserController {
             ChangeUserNameUseCase changeUserNameUseCase,
             ChangeUserEmailUseCase changeUserEmailUseCase,
             ChangeUserPasswordUseCase changeUserPasswordUseCase,
+            ChangeUserRoleUseCase changeUserRoleUseCase,
+            GrantPermissionUseCase grantPermissionUseCase,
+            RevokePermissionUseCase revokePermissionUseCase,
             DeleteUserUseCase deleteUserUseCase
     ) {
         this.createUserUseCase = createUserUseCase;
@@ -59,17 +77,23 @@ public class UserController {
         this.changeUserNameUseCase = changeUserNameUseCase;
         this.changeUserEmailUseCase = changeUserEmailUseCase;
         this.changeUserPasswordUseCase = changeUserPasswordUseCase;
+        this.changeUserRoleUseCase = changeUserRoleUseCase;
+        this.grantPermissionUseCase = grantPermissionUseCase;
+        this.revokePermissionUseCase = revokePermissionUseCase;
         this.deleteUserUseCase = deleteUserUseCase;
     }
 
     @PostMapping
-    public ResponseEntity<UserResponse> create(@Valid @RequestBody CreateUserRequest request) {
-
+    public ResponseEntity<UserResponse> create(
+            @CurrentUser(required = false) User actingUser,
+            @Valid @RequestBody CreateUserRequest request
+    ) {
         User user = createUserUseCase.execute(
                 request.firstName(),
                 request.lastName(),
                 request.email(),
-                request.password()
+                request.password(),
+                actingUser == null ? null : actingUser.getRole()
         );
 
         return ResponseEntity
@@ -124,9 +148,42 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
+    @PatchMapping("/{id}/role")
+    public ResponseEntity<Void> changeRole(
+            @CurrentUser User actingUser,
+            @PathVariable("id") Long id,
+            @Valid @RequestBody ChangeUserRoleRequest request
+    ) {
+        changeUserRoleUseCase.execute(id, request.role(), actingUser.getRole());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/permissions")
+    public ResponseEntity<Void> grantPermission(
+            @CurrentUser User actingUser,
+            @PathVariable("id") Long id,
+            @Valid @RequestBody GrantPermissionRequest request
+    ) {
+        grantPermissionUseCase.execute(id, request.permission(), actingUser.getRole());
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{id}/permissions/{permission}")
+    public ResponseEntity<Void> revokePermission(
+            @CurrentUser User actingUser,
+            @PathVariable("id") Long id,
+            @PathVariable("permission") Permission permission
+    ) {
+        revokePermissionUseCase.execute(id, permission, actingUser.getRole());
+        return ResponseEntity.noContent().build();
+    }
+
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable("id") Long id) {
-        deleteUserUseCase.execute(id);
+    public ResponseEntity<Void> delete(
+            @CurrentUser User actingUser,
+            @PathVariable("id") Long id
+    ) {
+        deleteUserUseCase.execute(id, actingUser.getRole());
         return ResponseEntity.noContent().build();
     }
 }

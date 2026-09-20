@@ -3,15 +3,20 @@ package rw.adms.application.users.usecases;
 import org.junit.jupiter.api.Test;
 
 import rw.adms.domain.users.User;
+import rw.adms.domain.users.interfaces.PasswordHasher;
 import rw.adms.domain.users.interfaces.UserRepository;
+import rw.adms.infrastructure.security.BCryptPasswordHasher;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 class ChangeUserPasswordUseCaseTest {
+
+    private final PasswordHasher passwordHasher = new BCryptPasswordHasher();
 
     @Test
     void shouldChangeUserPassword() {
@@ -30,13 +35,14 @@ class ChangeUserPasswordUseCaseTest {
                 .thenReturn(Optional.of(user));
 
         ChangeUserPasswordUseCase useCase =
-                new ChangeUserPasswordUseCase(userRepository);
+                new ChangeUserPasswordUseCase(userRepository, passwordHasher);
 
         // Act
         useCase.execute(1L, "newPassword");
 
-        // Assert
-        assertEquals("newPassword", user.getPassword());
+        // Assert - stored value is a hash, not the raw password
+        assertNotEquals("newPassword", user.getPassword());
+        assertTrue(passwordHasher.matches("newPassword", user.getPassword()));
 
         verify(userRepository).findById(1L);
         verify(userRepository).save(user);
@@ -51,7 +57,7 @@ class ChangeUserPasswordUseCaseTest {
                 .thenReturn(Optional.empty());
 
         ChangeUserPasswordUseCase useCase =
-                new ChangeUserPasswordUseCase(userRepository);
+                new ChangeUserPasswordUseCase(userRepository, passwordHasher);
 
         assertThrows(
                 IllegalArgumentException.class,

@@ -6,10 +6,14 @@ import rw.adms.application.users.usecases.AuthenticateUserUseCase;
 import rw.adms.application.users.usecases.ChangeUserEmailUseCase;
 import rw.adms.application.users.usecases.ChangeUserNameUseCase;
 import rw.adms.application.users.usecases.ChangeUserPasswordUseCase;
+import rw.adms.application.users.usecases.ChangeUserRoleUseCase;
 import rw.adms.application.users.usecases.CreateUserUseCase;
 import rw.adms.application.users.usecases.DeleteUserUseCase;
 import rw.adms.application.users.usecases.GetUserUseCase;
 import rw.adms.application.users.usecases.GetUsersUseCase;
+import rw.adms.application.users.usecases.GrantPermissionUseCase;
+import rw.adms.application.users.usecases.RevokePermissionUseCase;
+import rw.adms.domain.users.interfaces.PasswordHasher;
 import rw.adms.domain.users.interfaces.UserRepository;
 
 /**
@@ -23,8 +27,8 @@ import rw.adms.domain.users.interfaces.UserRepository;
 public class UserUseCaseConfig {
 
     @Bean
-    public CreateUserUseCase createUserUseCase(UserRepository userRepository) {
-        return new CreateUserUseCase(userRepository);
+    public CreateUserUseCase createUserUseCase(UserRepository userRepository, PasswordHasher passwordHasher) {
+        return new CreateUserUseCase(userRepository, passwordHasher);
     }
 
     @Bean
@@ -48,8 +52,26 @@ public class UserUseCaseConfig {
     }
 
     @Bean
-    public ChangeUserPasswordUseCase changeUserPasswordUseCase(UserRepository userRepository) {
-        return new ChangeUserPasswordUseCase(userRepository);
+    public ChangeUserPasswordUseCase changeUserPasswordUseCase(
+            UserRepository userRepository,
+            PasswordHasher passwordHasher
+    ) {
+        return new ChangeUserPasswordUseCase(userRepository, passwordHasher);
+    }
+
+    @Bean
+    public ChangeUserRoleUseCase changeUserRoleUseCase(UserRepository userRepository) {
+        return new ChangeUserRoleUseCase(userRepository);
+    }
+
+    @Bean
+    public GrantPermissionUseCase grantPermissionUseCase(UserRepository userRepository) {
+        return new GrantPermissionUseCase(userRepository);
+    }
+
+    @Bean
+    public RevokePermissionUseCase revokePermissionUseCase(UserRepository userRepository) {
+        return new RevokePermissionUseCase(userRepository);
     }
 
     @Bean
@@ -58,7 +80,10 @@ public class UserUseCaseConfig {
     }
 
     @Bean
-    public AuthenticateUserUseCase authenticateUserUseCase(UserRepository userRepository) {
-        return new AuthenticateUserUseCase(userRepository);
+    public AuthenticateUserUseCase authenticateUserUseCase(
+            UserRepository userRepository,
+            PasswordHasher passwordHasher
+    ) {
+        return new AuthenticateUserUseCase(userRepository, passwordHasher);
     }
 }

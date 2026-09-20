@@ -6,6 +6,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import rw.adms.application.auth.usecases.ValidateSessionUseCase;
 import rw.adms.application.company.usecases.ChangeCompanyEmailUseCase;
 import rw.adms.application.company.usecases.ChangeCompanyNameUseCase;
 import rw.adms.application.company.usecases.CreateCompanyUseCase;
@@ -37,6 +38,10 @@ class CompanyControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    /** Pulled in by every @WebMvcTest via the app's global argument resolver. */
+    @MockitoBean
+    private ValidateSessionUseCase validateSessionUseCase;
 
     @MockitoBean
     private CreateCompanyUseCase createCompanyUseCase;
