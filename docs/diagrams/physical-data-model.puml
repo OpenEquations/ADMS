@@ -1,0 +1,166 @@
+@startuml physical-data-model
+title ADMS - Physical Data Model (PostgreSQL, database "adms", schema "public")
+hide circle
+skinparam linetype ortho
+
+entity "users" as users << table >> {
+  + id : BIGINT <<generated identity>>
+  --
+  first_name : VARCHAR(255) NOT NULL
+  last_name : VARCHAR(255) NOT NULL
+  email : VARCHAR(255) NOT NULL
+  password : VARCHAR(255) NOT NULL
+  role : VARCHAR(20) NOT NULL
+  ..
+  UNIQUE uk_user_email (email)
+}
+
+entity "user_permissions" as user_permissions << table (element collection) >> {
+  + user_id : BIGINT NOT NULL
+  + permission : VARCHAR(255) NOT NULL
+  ..
+  no surrogate PK; composite of all columns
+  FK user_id -> users.id
+}
+
+entity "sessions" as sessions << table >> {
+  + id : BIGINT <<generated identity>>
+  --
+  token : VARCHAR(255) NOT NULL
+  user_id : BIGINT NOT NULL
+  expires_at : TIMESTAMP NOT NULL
+  created_at : TIMESTAMP NOT NULL
+  ..
+  UNIQUE uk_session_token (token)
+  user_id : plain column, no DB-level FK constraint
+}
+
+entity "items" as items << table >> {
+  + id : BIGINT <<generated identity>>
+  --
+  item_name : VARCHAR(255) NOT NULL
+  item_description : TEXT NOT NULL
+  item_status : VARCHAR(255) NOT NULL
+  item_type : VARCHAR(255) NULL
+  item_health : INTEGER NOT NULL
+  date_bought : DATE NULL
+  created_at : TIMESTAMP NOT NULL
+  updated_at : TIMESTAMP NOT NULL
+  sold_at_amount : NUMERIC NULL
+  sold_at_currency : VARCHAR(255) NULL
+  sold_to_company_id : BIGINT NULL
+  repair_cost_amount : NUMERIC NULL
+  repair_cost_currency : VARCHAR(255) NULL
+  ..
+  FK sold_to_company_id -> companies.id
+}
+
+entity "item_health_records" as item_health_records << table >> {
+  + id : BIGINT <<generated identity>>
+  --
+  item_id : BIGINT NOT NULL
+  health : INTEGER NOT NULL
+  recorded_at : TIMESTAMP NOT NULL
+  ..
+  INDEX idx_item_health_records_item_id (item_id)
+  item_id : plain column, no DB-level FK constraint
+  append-only - rows are never UPDATEd, only INSERTed
+}
+
+entity "warehouses" as warehouses << table >> {
+  + id : BIGINT <<generated identity>>
+  --
+  name : VARCHAR(255) NOT NULL
+  ..
+  UNIQUE uk_warehouse_name (name)
+}
+
+entity "warehouse_items" as warehouse_items << join table >> {
+  + warehouse_id : BIGINT NOT NULL
+  + item_id : BIGINT NOT NULL
+  ..
+  FK warehouse_id -> warehouses.id
+  FK item_id -> items.id
+  UNIQUE uk_warehouse_item (warehouse_id, item_id)
+}
+
+entity "companies" as companies << table >> {
+  + id : BIGINT <<generated identity>>
+  --
+  name : VARCHAR(255) NOT NULL
+  email : VARCHAR(255) NOT NULL
+  ..
+  UNIQUE uk_company_email (email)
+}
+
+entity "tenders" as tenders << table >> {
+  + id : BIGINT <<generated identity>>
+  --
+  title : VARCHAR(255) NOT NULL
+  description : TEXT NULL
+  type : VARCHAR(255) NOT NULL
+  status : VARCHAR(255) NOT NULL
+  winner_company_id : BIGINT NULL
+  ..
+  FK winner_company_id -> companies.id
+}
+
+entity "tender_items" as tender_items << join table >> {
+  + tender_id : BIGINT NOT NULL
+  + item_id : BIGINT NOT NULL
+  ..
+  FK tender_id -> tenders.id
+  FK item_id -> items.id
+  UNIQUE uk_tender_item (tender_id, item_id)
+}
+
+entity "organization_settings" as organization_settings << table (singleton) >> {
+  + id : BIGINT <<fixed literal = 1, not generated>>
+  --
+  name : VARCHAR(255) NOT NULL
+  email : VARCHAR(255) NULL
+  phone : VARCHAR(255) NULL
+  address : TEXT NULL
+  website : VARCHAR(255) NULL
+  registration_number : VARCHAR(255) NULL
+  description : TEXT NULL
+}
+
+entity "stock_reports" as stock_reports << table >> {
+  + id : BIGINT <<generated identity>>
+  --
+  generated_at : TIMESTAMP NOT NULL
+  generated_by_name : VARCHAR(255) NOT NULL
+  total_items : INTEGER NOT NULL
+  total_warehouses : INTEGER NOT NULL
+  total_companies : INTEGER NOT NULL
+  total_tenders : INTEGER NOT NULL
+  unallocated_items : INTEGER NOT NULL
+  details_json : TEXT NOT NULL
+  ..
+  details_json holds serialized:
+  { itemsByStatus[], itemsByType[],
+    itemsByWarehouse[], lowHealthItems[] }
+}
+
+users              ||--o{ user_permissions    : user_id
+companies          ||--o{ items               : sold_to_company_id
+companies          ||--o{ tenders             : winner_company_id
+warehouses         ||--o{ warehouse_items     : warehouse_id
+items              ||--o{ warehouse_items     : item_id
+tenders            ||--o{ tender_items        : tender_id
+items              ||--o{ tender_items        : item_id
+
+note as N1
+  Schema origin: almost every table above is created/updated
+  by Hibernate (spring.jpa.hibernate.ddl-auto=update), NOT by
+  Flyway. Flyway migrations present:
+   V1__create_users_table.sql   - empty / vestigial (0 bytes)
+   V2__add_user_role_column.sql - idempotent guarded ALTER,
+     adds users.role, backfills existing rows to SUPERADMIN,
+     no-ops on a brand-new database (table doesn't exist yet
+     when Flyway runs, before Hibernate ddl-auto).
+  Flyway always runs before Hibernate ddl-auto on boot.
+end note
+
+@enduml

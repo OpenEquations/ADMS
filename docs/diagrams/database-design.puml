@@ -1,0 +1,193 @@
+@startuml database-design
+title ADMS - Logical Database Design (domain / JPA entity view)
+skinparam linetype ortho
+hide circle
+hide empty members
+
+package "Auth" {
+  class Session <<entity>> {
+    id : Long
+    token : String <<unique>>
+    userId : Long
+    expiresAt : DateTime
+    createdAt : DateTime
+    --
+    isExpired(now) : boolean
+  }
+}
+
+package "Users" {
+  class User <<entity>> {
+    id : Long
+    firstName : String
+    lastName : String
+    email : String <<unique>>
+    password : String
+    role : UserRole
+    --
+    hasPermission(p) : boolean
+    changeRole(newRole)
+    grantPermission(p)
+    revokePermission(p)
+  }
+
+  enum UserRole {
+    SUPERADMIN
+    USER
+  }
+
+  enum Permission {
+    MANAGE_ITEMS
+    MANAGE_WAREHOUSES
+    MANAGE_COMPANIES
+    MANAGE_TENDERS
+  }
+
+  User "1" *-- "0..*" Permission : permissions\n(user_permissions)
+  User --> UserRole : role
+}
+
+package "Items" {
+  class Item <<entity>> {
+    id : Long
+    itemName : String
+    itemDescription : String
+    itemStatus : ItemStatus
+    itemType : ItemType
+    itemHealth : int  ' 0..100
+    dateBought : Date
+    createdAt : DateTime
+    updatedAt : DateTime
+    soldAt : Money
+    repairCost : Money
+    --
+    updateItemHealth(health)
+    markAsSold(price, company)
+  }
+
+  class ItemHealthRecord <<entity, append-only>> {
+    id : Long
+    itemId : Long
+    health : int
+    recordedAt : DateTime
+  }
+
+  enum ItemStatus {
+    NEW
+    IN_USE
+    NO_LONGER_IN_USE
+    SOLD
+    OUT_OF_STOCK
+  }
+
+  enum ItemType {
+    ELECTRONICS
+    FURNITURE
+    APPLIANCE
+    OTHER
+  }
+
+  Item --> ItemStatus
+  Item --> ItemType
+  Item "1" -- "0..*" ItemHealthRecord : health trend >
+}
+
+package "Warehouses" {
+  class Warehouse <<entity>> {
+    id : Long
+    name : String <<unique>>
+    --
+    addItem(item)
+    removeItem(itemId)
+  }
+
+  Warehouse "0..*" -- "0..*" Item : contains >
+}
+
+package "Companies" {
+  class Company <<entity>> {
+    id : Long
+    name : String
+    email : String <<unique>>
+  }
+}
+
+package "Tenders" {
+  class Tender <<entity>> {
+    id : Long
+    title : String
+    description : String
+    type : TenderType
+    status : TenderStatus
+    --
+    addItem(item)
+    setTenderWinner(company)
+    changeTenderStatus(status)
+  }
+
+  enum TenderType {
+    REPAIR_TENDER
+    SELLING_TENDER
+  }
+
+  enum TenderStatus {
+    NOT_PUBLISHED
+    PUBLISHED
+    OVER
+  }
+
+  Tender --> TenderType
+  Tender --> TenderStatus
+  Tender "0..*" -- "0..*" Item : lists >
+}
+
+package "Organization" {
+  class OrganizationSettings <<entity, singleton>> {
+    id : Long = 1
+    name : String
+    email : String
+    phone : String
+    address : String
+    website : String
+    registrationNumber : String
+    description : String
+  }
+}
+
+package "Reports" {
+  class StockReport <<entity, frozen snapshot>> {
+    id : Long
+    generatedAt : DateTime
+    generatedByName : String
+    totalItems : int
+    totalWarehouses : int
+    totalCompanies : int
+    totalTenders : int
+    unallocatedItems : int
+    itemsByStatus : List<ItemCount>
+    itemsByType : List<ItemCount>
+    itemsByWarehouse : List<WarehouseItemCount>
+    lowHealthItems : List<LowHealthItem>
+  }
+  note bottom of StockReport
+    Breakdown lists are serialized into a
+    single detailsJson TEXT column -
+    write-once, read-whole, never queried
+    by contents, so they are not modeled
+    as separate child tables.
+  end note
+}
+
+' Cross-package relationships
+Item "0..*" --> "0..1" Company : soldTo >
+Tender "0..*" --> "0..1" Company : tenderWinner >
+Session "0..*" --> "1" User : userId\n(plain long, no JPA relationship)
+ItemHealthRecord "0..*" --> "1" Item : itemId\n(plain long, no JPA relationship)
+
+note as N1
+  Permission is defined on User but not
+  yet enforced by any Item / Warehouse /
+  Company / Tender use case.
+end note
+
+@enduml

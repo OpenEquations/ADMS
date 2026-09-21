@@ -14,6 +14,7 @@ import rw.adms.application.items.usecases.ChangeItemStatusUseCase;
 import rw.adms.application.items.usecases.ChangeItemTypeUseCase;
 import rw.adms.application.items.usecases.CreateItemUseCase;
 import rw.adms.application.items.usecases.DeleteItemUseCase;
+import rw.adms.application.items.usecases.GetItemHealthHistoryUseCase;
 import rw.adms.application.items.usecases.GetItemUseCase;
 import rw.adms.application.items.usecases.GetItemsUseCase;
 import rw.adms.domain.items.Item;
@@ -74,6 +75,9 @@ class ItemControllerTest {
 
     @MockitoBean
     private ChangeItemHealthUseCase changeItemHealthUseCase;
+
+    @MockitoBean
+    private GetItemHealthHistoryUseCase getItemHealthHistoryUseCase;
 
     @MockitoBean
     private DeleteItemUseCase deleteItemUseCase;
@@ -206,6 +210,20 @@ class ItemControllerTest {
                 .andExpect(status().isNoContent());
 
         verify(changeItemTypeUseCase).execute(1L, ItemType.FURNITURE);
+    }
+
+    @Test
+    void shouldReturnHealthHistory() throws Exception {
+
+        rw.adms.domain.items.ItemHealthRecord record = new rw.adms.domain.items.ItemHealthRecord(
+                1L, 1L, 55, java.time.LocalDateTime.of(2026, 1, 1, 0, 0)
+        );
+
+        when(getItemHealthHistoryUseCase.execute(1L)).thenReturn(java.util.List.of(record));
+
+        mockMvc.perform(get("/api/items/{id}/health-history", 1L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].health").value(55));
     }
 
     @Test

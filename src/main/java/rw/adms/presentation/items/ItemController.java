@@ -17,6 +17,7 @@ import rw.adms.application.items.usecases.ChangeItemStatusUseCase;
 import rw.adms.application.items.usecases.ChangeItemTypeUseCase;
 import rw.adms.application.items.usecases.CreateItemUseCase;
 import rw.adms.application.items.usecases.DeleteItemUseCase;
+import rw.adms.application.items.usecases.GetItemHealthHistoryUseCase;
 import rw.adms.application.items.usecases.GetItemUseCase;
 import rw.adms.application.items.usecases.GetItemsUseCase;
 import rw.adms.domain.items.Item;
@@ -27,6 +28,7 @@ import rw.adms.presentation.items.dto.ChangeItemNameRequest;
 import rw.adms.presentation.items.dto.ChangeItemStatusRequest;
 import rw.adms.presentation.items.dto.ChangeItemTypeRequest;
 import rw.adms.presentation.items.dto.CreateItemRequest;
+import rw.adms.presentation.items.dto.ItemHealthRecordResponse;
 import rw.adms.presentation.items.dto.ItemResponse;
 
 import java.net.URI;
@@ -44,6 +46,7 @@ public class ItemController {
     private final ChangeItemStatusUseCase changeItemStatusUseCase;
     private final ChangeItemTypeUseCase changeItemTypeUseCase;
     private final ChangeItemHealthUseCase changeItemHealthUseCase;
+    private final GetItemHealthHistoryUseCase getItemHealthHistoryUseCase;
     private final DeleteItemUseCase deleteItemUseCase;
 
     public ItemController(
@@ -55,6 +58,7 @@ public class ItemController {
             ChangeItemStatusUseCase changeItemStatusUseCase,
             ChangeItemTypeUseCase changeItemTypeUseCase,
             ChangeItemHealthUseCase changeItemHealthUseCase,
+            GetItemHealthHistoryUseCase getItemHealthHistoryUseCase,
             DeleteItemUseCase deleteItemUseCase
     ) {
         this.createItemUseCase = createItemUseCase;
@@ -65,6 +69,7 @@ public class ItemController {
         this.changeItemStatusUseCase = changeItemStatusUseCase;
         this.changeItemTypeUseCase = changeItemTypeUseCase;
         this.changeItemHealthUseCase = changeItemHealthUseCase;
+        this.getItemHealthHistoryUseCase = getItemHealthHistoryUseCase;
         this.deleteItemUseCase = deleteItemUseCase;
     }
 
@@ -147,6 +152,17 @@ public class ItemController {
     ) {
         changeItemHealthUseCase.execute(id, request.itemHealth());
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/health-history")
+    public ResponseEntity<List<ItemHealthRecordResponse>> getHealthHistory(@PathVariable("id") Long id) {
+
+        List<ItemHealthRecordResponse> history = getItemHealthHistoryUseCase.execute(id)
+                .stream()
+                .map(ItemHealthRecordResponse::from)
+                .toList();
+
+        return ResponseEntity.ok(history);
     }
 
     @DeleteMapping("/{id}")

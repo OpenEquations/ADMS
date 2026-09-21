@@ -1,0 +1,222 @@
+@startuml use-case-auth
+title ADMS - Use Cases: Authentication
+skinparam actorStyle awesome
+
+actor "Guest" as Guest
+actor "Staff / Superadmin\n(any authenticated user)" as Auth
+
+usecase "Login" as UC_Login
+usecase "Logout" as UC_Logout
+usecase "Create Session" as UC_CreateSession
+
+Guest --> UC_Login
+Auth --> UC_Logout
+UC_Login ..> UC_CreateSession : <<include>>
+
+@enduml
+
+@startuml use-case-users
+title ADMS - Use Cases: User & Access Management
+skinparam actorStyle awesome
+
+actor "Guest" as Guest
+actor "Superadmin" as Super
+
+usecase "Register First Account\n(bootstrap superadmin)" as UC_Bootstrap
+usecase "View Users" as UC_ViewUsers
+usecase "Change User Name /\nEmail / Password" as UC_ChangeBasics
+usecase "Add Staff User" as UC_AddUser
+usecase "Change User Role" as UC_ChangeRole
+usecase "Grant Permission" as UC_Grant
+usecase "Revoke Permission" as UC_Revoke
+usecase "Delete User" as UC_DeleteUser
+
+Guest --> UC_Bootstrap
+Guest --> UC_ViewUsers
+Guest --> UC_ChangeBasics
+Super --> UC_AddUser
+Super --> UC_ChangeRole
+Super --> UC_Grant
+Super --> UC_Revoke
+Super --> UC_DeleteUser
+
+note right of UC_Bootstrap
+  Only reachable while the system has
+  **zero** users; that first account
+  becomes Superadmin unconditionally.
+end note
+
+note right of UC_ChangeBasics
+  No auth check at all on these three
+  endpoints - any Guest can rename or
+  re-email or re-password any user id.
+end note
+
+note bottom of UC_DeleteUser
+  Role change / grant / revoke / delete
+  all require an authenticated Superadmin,
+  and both role-change and delete refuse
+  to remove the **last** superadmin.
+end note
+
+@enduml
+
+@startuml use-case-items
+title ADMS - Use Cases: Item Management
+skinparam actorStyle awesome
+
+actor "Guest\n(no auth enforced)" as Guest
+
+usecase "Create Item" as UC_CreateItem
+usecase "View Items" as UC_ViewItems
+usecase "Edit Item Details\n(name / description / status / type)" as UC_EditItem
+usecase "Update Item Health" as UC_UpdateHealth
+usecase "Record Health Reading" as UC_RecordHealth
+usecase "View Item Health History" as UC_ViewHealthHistory
+usecase "Delete Item" as UC_DeleteItem
+
+Guest --> UC_CreateItem
+Guest --> UC_ViewItems
+Guest --> UC_EditItem
+Guest --> UC_UpdateHealth
+Guest --> UC_ViewHealthHistory
+Guest --> UC_DeleteItem
+
+UC_CreateItem ..> UC_RecordHealth : <<include>>\n(initial reading)
+UC_UpdateHealth ..> UC_RecordHealth : <<include>>\n(append, never overwrite)
+
+note bottom of UC_RecordHealth
+  Health readings are append-only - a
+  change never overwrites a prior value,
+  which is what powers the trend chart
+  behind "View Item Health History".
+end note
+
+@enduml
+
+@startuml use-case-warehouses
+title ADMS - Use Cases: Warehouse Management
+skinparam actorStyle awesome
+
+actor "Guest\n(no auth enforced)" as Guest
+
+usecase "Create Warehouse" as UC_CreateWarehouse
+usecase "View Warehouses" as UC_ViewWarehouses
+usecase "Rename Warehouse" as UC_RenameWarehouse
+usecase "Add Item to Warehouse" as UC_AddItemToWarehouse
+usecase "Remove Item from Warehouse" as UC_RemoveItemFromWarehouse
+usecase "Delete Warehouse" as UC_DeleteWarehouse
+
+Guest --> UC_CreateWarehouse
+Guest --> UC_ViewWarehouses
+Guest --> UC_RenameWarehouse
+Guest --> UC_AddItemToWarehouse
+Guest --> UC_RemoveItemFromWarehouse
+Guest --> UC_DeleteWarehouse
+
+note bottom of UC_AddItemToWarehouse
+  An item can belong to more than one
+  warehouse in the data model - nothing
+  enforces "one warehouse per item".
+end note
+
+@enduml
+
+@startuml use-case-companies
+title ADMS - Use Cases: Company Management
+skinparam actorStyle awesome
+
+actor "Guest\n(no auth enforced)" as Guest
+
+usecase "Create Company" as UC_CreateCompany
+usecase "View Companies" as UC_ViewCompanies
+usecase "Edit Company" as UC_EditCompany
+usecase "Delete Company" as UC_DeleteCompany
+
+Guest --> UC_CreateCompany
+Guest --> UC_ViewCompanies
+Guest --> UC_EditCompany
+Guest --> UC_DeleteCompany
+
+@enduml
+
+@startuml use-case-tenders
+title ADMS - Use Cases: Tender Management
+skinparam actorStyle awesome
+
+actor "Guest\n(no auth enforced)" as Guest
+
+usecase "Create Tender" as UC_CreateTender
+usecase "View Tenders" as UC_ViewTenders
+usecase "Add Item to Tender" as UC_AddItemToTender
+usecase "Edit Tender Details\n(title / description / status)" as UC_EditTender
+usecase "Set Tender Winner" as UC_SetWinner
+usecase "Conclude Tender" as UC_ConcludeTender
+usecase "Delete Tender" as UC_DeleteTender
+
+Guest --> UC_CreateTender
+Guest --> UC_ViewTenders
+Guest --> UC_AddItemToTender
+Guest --> UC_EditTender
+Guest --> UC_SetWinner
+Guest --> UC_ConcludeTender
+Guest --> UC_DeleteTender
+
+UC_ConcludeTender ..> UC_SetWinner : <<include>>
+UC_ConcludeTender ..> UC_EditTender : <<include>>\n(status -> OVER)
+
+note bottom of UC_EditTender
+  Status changes have no transition
+  guard - any status can move to any
+  other status, including backward
+  (e.g. OVER back to NOT_PUBLISHED).
+end note
+
+@enduml
+
+@startuml use-case-organization
+title ADMS - Use Cases: Organization Settings
+skinparam actorStyle awesome
+
+actor "Guest\n(no auth enforced)" as Guest
+
+usecase "View Organization Settings" as UC_ViewOrg
+usecase "Update Organization Settings" as UC_UpdateOrg
+
+Guest --> UC_ViewOrg
+Guest --> UC_UpdateOrg
+
+note bottom of UC_UpdateOrg
+  Singleton record (fixed id = 1); GET
+  never 404s, PUT upserts. Feeds the
+  printable tender poster template on
+  the frontend.
+end note
+
+@enduml
+
+@startuml use-case-reports
+title ADMS - Use Cases: Reporting
+skinparam actorStyle awesome
+
+actor "Guest" as Guest
+actor "Staff / Superadmin\n(any authenticated user)" as Auth
+
+usecase "View Stock Reports" as UC_ViewReports
+usecase "Print / Export Tender Poster" as UC_TenderPoster
+usecase "Generate Stock Report" as UC_GenerateReport
+
+Guest --> UC_ViewReports
+Guest --> UC_TenderPoster
+Auth --> UC_GenerateReport
+
+note right of UC_GenerateReport
+  The only write endpoint in the whole
+  backend besides Users' role/permission/
+  delete actions that requires @CurrentUser
+  (any authenticated user, not just
+  Superadmin). Produces a frozen snapshot,
+  not a live-recomputed view.
+end note
+
+@enduml

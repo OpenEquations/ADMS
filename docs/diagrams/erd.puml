@@ -1,0 +1,143 @@
+@startuml erd
+title ADMS - Entity Relationship Diagram
+hide circle
+skinparam linetype ortho
+
+entity "users" as users {
+  * id : BIGINT <<PK>>
+  --
+  * first_name : VARCHAR
+  * last_name : VARCHAR
+  * email : VARCHAR <<UK>>
+  * password : VARCHAR
+  * role : VARCHAR
+}
+
+entity "user_permissions" as user_permissions {
+  * user_id : BIGINT <<FK>>
+  * permission : VARCHAR
+}
+
+entity "sessions" as sessions {
+  * id : BIGINT <<PK>>
+  --
+  * token : VARCHAR <<UK>>
+  * user_id : BIGINT <<FK, unenforced>>
+  * expires_at : TIMESTAMP
+  * created_at : TIMESTAMP
+}
+
+entity "items" as items {
+  * id : BIGINT <<PK>>
+  --
+  * item_name : VARCHAR
+  * item_description : TEXT
+  * item_status : VARCHAR
+  item_type : VARCHAR
+  * item_health : INTEGER
+  date_bought : DATE
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+  sold_at_amount : NUMERIC
+  sold_at_currency : VARCHAR
+  sold_to_company_id : BIGINT <<FK>>
+  repair_cost_amount : NUMERIC
+  repair_cost_currency : VARCHAR
+}
+
+entity "item_health_records" as item_health_records {
+  * id : BIGINT <<PK>>
+  --
+  * item_id : BIGINT <<FK, unenforced, indexed>>
+  * health : INTEGER
+  * recorded_at : TIMESTAMP
+}
+
+entity "warehouses" as warehouses {
+  * id : BIGINT <<PK>>
+  --
+  * name : VARCHAR <<UK>>
+}
+
+entity "warehouse_items" as warehouse_items {
+  * warehouse_id : BIGINT <<FK>>
+  * item_id : BIGINT <<FK>>
+}
+
+entity "companies" as companies {
+  * id : BIGINT <<PK>>
+  --
+  * name : VARCHAR
+  * email : VARCHAR <<UK>>
+}
+
+entity "tenders" as tenders {
+  * id : BIGINT <<PK>>
+  --
+  * title : VARCHAR
+  description : TEXT
+  * type : VARCHAR
+  * status : VARCHAR
+  winner_company_id : BIGINT <<FK>>
+}
+
+entity "tender_items" as tender_items {
+  * tender_id : BIGINT <<FK>>
+  * item_id : BIGINT <<FK>>
+}
+
+entity "organization_settings" as organization_settings {
+  * id : BIGINT <<PK, fixed=1>>
+  --
+  * name : VARCHAR
+  email : VARCHAR
+  phone : VARCHAR
+  address : TEXT
+  website : VARCHAR
+  registration_number : VARCHAR
+  description : TEXT
+}
+
+entity "stock_reports" as stock_reports {
+  * id : BIGINT <<PK>>
+  --
+  * generated_at : TIMESTAMP
+  * generated_by_name : VARCHAR
+  * total_items : INTEGER
+  * total_warehouses : INTEGER
+  * total_companies : INTEGER
+  * total_tenders : INTEGER
+  * unallocated_items : INTEGER
+  * details_json : TEXT
+}
+
+users        ||--o{ user_permissions      : "grants"
+users        ||..o{ sessions              : "owns (app-level FK)"
+companies    ||--o{ items                 : "sold_to_company_id"
+companies    ||--o{ tenders               : "winner_company_id"
+warehouses   ||--o{ warehouse_items       : "warehouse_id"
+items        ||--o{ warehouse_items       : "item_id"
+tenders      ||--o{ tender_items          : "tender_id"
+items        ||--o{ tender_items          : "item_id"
+items        ||..o{ item_health_records   : "item_id (app-level FK)"
+
+note bottom of sessions
+  user_id has no @ManyToOne / FK constraint
+  at the DB level - joined manually in code.
+end note
+
+note bottom of item_health_records
+  item_id has no @ManyToOne / FK constraint
+  at the DB level; indexed for lookups only.
+  Append-only - rows are never updated.
+end note
+
+note bottom of stock_reports
+  No foreign keys at all. generated_by_name
+  is a copied string, not a live user_id FK.
+  details_json holds the 4 breakdown lists
+  (itemsByStatus, itemsByType, itemsByWarehouse,
+  lowHealthItems) as serialized JSON.
+end note
+
+@enduml

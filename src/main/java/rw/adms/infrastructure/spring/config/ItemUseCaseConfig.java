@@ -9,8 +9,10 @@ import rw.adms.application.items.usecases.ChangeItemStatusUseCase;
 import rw.adms.application.items.usecases.ChangeItemTypeUseCase;
 import rw.adms.application.items.usecases.CreateItemUseCase;
 import rw.adms.application.items.usecases.DeleteItemUseCase;
+import rw.adms.application.items.usecases.GetItemHealthHistoryUseCase;
 import rw.adms.application.items.usecases.GetItemUseCase;
 import rw.adms.application.items.usecases.GetItemsUseCase;
+import rw.adms.domain.items.interfaces.ItemHealthRecordRepository;
 import rw.adms.domain.items.interfaces.ItemRepository;
 
 /**
@@ -20,8 +22,11 @@ import rw.adms.domain.items.interfaces.ItemRepository;
 public class ItemUseCaseConfig {
 
     @Bean
-    public CreateItemUseCase createItemUseCase(ItemRepository itemRepository) {
-        return new CreateItemUseCase(itemRepository);
+    public CreateItemUseCase createItemUseCase(
+            ItemRepository itemRepository,
+            ItemHealthRecordRepository itemHealthRecordRepository
+    ) {
+        return new CreateItemUseCase(itemRepository, itemHealthRecordRepository);
     }
 
     @Bean
@@ -55,8 +60,19 @@ public class ItemUseCaseConfig {
     }
 
     @Bean
-    public ChangeItemHealthUseCase changeItemHealthUseCase(ItemRepository itemRepository) {
-        return new ChangeItemHealthUseCase(itemRepository);
+    public ChangeItemHealthUseCase changeItemHealthUseCase(
+            ItemRepository itemRepository,
+            ItemHealthRecordRepository itemHealthRecordRepository
+    ) {
+        return new ChangeItemHealthUseCase(itemRepository, itemHealthRecordRepository);
+    }
+
+    @Bean
+    public GetItemHealthHistoryUseCase getItemHealthHistoryUseCase(
+            ItemRepository itemRepository,
+            ItemHealthRecordRepository itemHealthRecordRepository
+    ) {
+        return new GetItemHealthHistoryUseCase(itemRepository, itemHealthRecordRepository);
     }
 
     @Bean

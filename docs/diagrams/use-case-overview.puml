@@ -1,0 +1,66 @@
+@startuml use-case-overview
+title ADMS - Use Case Overview (system context)
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+
+actor "Guest\n(unauthenticated client)" as Guest
+actor "Staff User\n(authenticated, role=USER)" as Staff
+actor "Superadmin\n(role=SUPERADMIN)" as Super
+
+Staff --|> Guest
+Super --|> Staff
+
+rectangle "ADMS Backend" {
+  usecase "Authenticate\n(login / logout)" as UC_Auth
+  usecase "Manage Users\n& Access" as UC_Users
+  usecase "Manage Items" as UC_Items
+  usecase "Manage Warehouses" as UC_Warehouses
+  usecase "Manage Companies" as UC_Companies
+  usecase "Manage Tenders" as UC_Tenders
+  usecase "Manage Organization\nSettings" as UC_Org
+  usecase "Generate & View\nStock Reports" as UC_Reports
+}
+
+Guest --> UC_Auth
+Guest --> UC_Users
+Guest --> UC_Items
+Guest --> UC_Warehouses
+Guest --> UC_Companies
+Guest --> UC_Tenders
+Guest --> UC_Org
+Guest --> UC_Reports
+
+note right of UC_Users
+  Guest: register the very first
+  account (bootstrap) + view/rename
+  any user. Superadmin adds: create
+  further users, change roles,
+  grant/revoke permissions, delete.
+end note
+
+note right of UC_Reports
+  Guest/Staff/Superadmin can all view
+  past reports; generating a **new**
+  report requires any authenticated
+  session (Staff or Superadmin).
+end note
+
+note bottom of UC_Items
+  Items, Warehouses, Companies, Tenders
+  and Organization Settings currently
+  have **no authentication check** at
+  all - every operation shown for
+  Guest is reachable by any client.
+  See the detailed per-module diagrams
+  in use-case-details.puml for the
+  full breakdown.
+end note
+
+legend bottom
+  This is the high-level context diagram. For the full set of
+  use cases inside each box above, see the matching diagram
+  in **use-case-details.puml**.
+endlegend
+
+@enduml

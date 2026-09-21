@@ -1,0 +1,253 @@
+@startuml sequence-login
+title Sequence - Login
+autonumber
+actor Client
+participant "AuthController" as Ctrl
+participant "AuthenticateUserUseCase" as AuthUC
+participant "UserRepositoryAdapter" as UserRepo
+participant "BCryptPasswordHasher" as Hasher
+participant "CreateSessionUseCase" as SessionUC
+participant "SessionRepositoryAdapter" as SessionRepo
+database "PostgreSQL" as DB
+
+Client -> Ctrl : POST /api/auth/login\n{email, password}
+Ctrl -> AuthUC : execute(email, password)
+AuthUC -> UserRepo : findByEmail(email)
+UserRepo -> DB : SELECT * FROM users WHERE email = ?
+DB --> UserRepo : row or none
+UserRepo --> AuthUC : Optional<User>
+
+alt user not found
+  AuthUC --> Ctrl : Optional.empty()
+  Ctrl --> Client : 401 ApiError\n"Invalid email or password"
+else user found
+  AuthUC -> Hasher : matches(rawPassword, storedHash)
+  Hasher --> AuthUC : boolean
+
+  alt password does not match
+    AuthUC --> Ctrl : Optional.empty()
+    Ctrl --> Client : 401 ApiError\n"Invalid email or password"
+  else password matches
+    AuthUC --> Ctrl : Optional<User>
+    Ctrl -> SessionUC : execute(user.getId())
+    SessionUC -> SessionUC : token = base64url(SecureRandom(32 bytes))
+    SessionUC -> SessionUC : expiresAt = now + 7 days
+    SessionUC -> SessionRepo : save(Session)
+    SessionRepo -> DB : INSERT INTO sessions (token, user_id, expires_at, created_at)
+    DB --> SessionRepo : ok
+    SessionRepo --> SessionUC : Session
+    SessionUC --> Ctrl : Session
+    Ctrl --> Client : 200 LoginResponse\n{token, user}
+  end
+end
+@enduml
+
+@startuml sequence-current-user-resolution
+title Sequence - @CurrentUser Resolution (used by every authenticated endpoint)
+autonumber
+actor Client
+participant "Any Controller\n(e.g. UserController, StockReportController)" as Ctrl
+participant "CurrentUserArgumentResolver" as Resolver
+participant "ValidateSessionUseCase" as ValidateUC
+participant "SessionRepositoryAdapter" as SessionRepo
+participant "UserRepositoryAdapter" as UserRepo
+database "PostgreSQL" as DB
+
+Client -> Ctrl : Request with\nAuthorization: Bearer <token>
+Ctrl -> Resolver : resolveArgument(@CurrentUser param)
+Resolver -> ValidateUC : execute(token)
+ValidateUC -> SessionRepo : findByToken(token)
+SessionRepo -> DB : SELECT * FROM sessions WHERE token = ?
+DB --> SessionRepo : row or none
+SessionRepo --> ValidateUC : Optional<Session>
+
+alt token missing / unknown / expired
+  ValidateUC --> Resolver : Optional.empty()
+  alt @CurrentUser(required = true)  (default)
+    Resolver --> Ctrl : throws UnauthorizedException
+    Ctrl --> Client : 401 ApiError
+  else @CurrentUser(required = false)  (only UserController.create)
+    Resolver --> Ctrl : null
+    Ctrl -> Ctrl : proceed as bootstrap/anonymous actor
+  end
+else session valid
+  ValidateUC -> UserRepo : findById(session.getUserId())
+  UserRepo -> DB : SELECT * FROM users WHERE id = ?
+  DB --> UserRepo : row
+  UserRepo --> ValidateUC : Optional<User>
+  ValidateUC --> Resolver : Optional<User>
+  Resolver --> Ctrl : User instance
+  Ctrl -> Ctrl : proceed with actingUser
+end
+@enduml
+
+@startuml sequence-create-user
+title Sequence - Create User (bootstrap vs. Superadmin-gated)
+autonumber
+actor Client
+participant "UserController" as Ctrl
+participant "CurrentUserArgumentResolver" as Resolver
+participant "CreateUserUseCase" as CreateUC
+participant "UserRepositoryAdapter" as UserRepo
+participant "BCryptPasswordHasher" as Hasher
+database "PostgreSQL" as DB
+
+Client -> Ctrl : POST /api/users\n{firstName, lastName, email, password}\n(Authorization header optional)
+Ctrl -> Resolver : @CurrentUser(required=false)
+Resolver --> Ctrl : User actingUser | null
+Ctrl -> CreateUC : execute(firstName, lastName, email, password,\nactingUser == null ? null : actingUser.getRole())
+
+CreateUC -> UserRepo : existsAny()
+UserRepo -> DB : SELECT EXISTS (SELECT 1 FROM users)
+DB --> UserRepo : boolean
+UserRepo --> CreateUC : isBootstrap
+
+alt isBootstrap == true  (first account ever)
+  CreateUC -> CreateUC : role = SUPERADMIN
+else isBootstrap == false
+  alt actingRole != SUPERADMIN
+    CreateUC --> Ctrl : throws ForbiddenException\n"Only a superadmin can add users"
+    Ctrl --> Client : 403 ApiError
+  else actingRole == SUPERADMIN
+    CreateUC -> CreateUC : role = USER
+  end
+end
+
+CreateUC -> Hasher : hash(password)
+Hasher --> CreateUC : bcryptHash
+CreateUC -> CreateUC : new User(firstName, lastName, email, bcryptHash, role)\n(Name VO rejects blank / digit-containing names)
+CreateUC -> UserRepo : save(user)
+UserRepo -> DB : INSERT INTO users (...)
+DB --> UserRepo : generated id
+UserRepo --> CreateUC : User
+CreateUC --> Ctrl : User
+Ctrl --> Client : 201 UserResponse + Location header
+@enduml
+
+@startuml sequence-update-item-health
+title Sequence - Update Item Health (with append-only history)
+autonumber
+actor "Staff / Guest" as Client
+participant "ItemController" as Ctrl
+participant "ChangeItemHealthUseCase" as HealthUC
+participant "ItemRepositoryAdapter" as ItemRepo
+participant "ItemHealthRecordRepositoryAdapter" as HistoryRepo
+database "PostgreSQL" as DB
+
+Client -> Ctrl : PATCH /api/items/{id}/health\n{itemHealth: 0..100}
+Ctrl -> HealthUC : execute(itemId, health)
+HealthUC -> ItemRepo : findById(itemId)
+ItemRepo -> DB : SELECT * FROM items WHERE id = ?
+DB --> ItemRepo : row or none
+ItemRepo --> HealthUC : Optional<Item>
+
+alt item not found
+  HealthUC --> Ctrl : throws IllegalArgumentException("Item not found")
+  Ctrl --> Client : 404 ApiError
+else item found
+  HealthUC -> HealthUC : item.updateItemHealth(health)\n(new ItemHealth(health) revalidates 0-100, touch() updates updatedAt)
+  HealthUC -> ItemRepo : save(item)
+  ItemRepo -> DB : UPDATE items SET item_health = ?, updated_at = ? WHERE id = ?
+  DB --> ItemRepo : ok
+
+  HealthUC -> HistoryRepo : save(new ItemHealthRecord(itemId, health, now()))
+  note right : Never overwrites a prior reading -\nevery change appends a new row so the\nfull decline/repair trend is preserved.
+  HistoryRepo -> DB : INSERT INTO item_health_records\n(item_id, health, recorded_at)
+  DB --> HistoryRepo : ok
+  HistoryRepo --> HealthUC : ItemHealthRecord
+
+  HealthUC --> Ctrl : void
+  Ctrl --> Client : 204 No Content
+end
+@enduml
+
+@startuml sequence-generate-stock-report
+title Sequence - Generate Stock Report (frozen snapshot)
+autonumber
+actor Client
+participant "StockReportController" as Ctrl
+participant "CurrentUserArgumentResolver" as Resolver
+participant "GenerateStockReportUseCase" as ReportUC
+participant "ItemRepositoryAdapter" as ItemRepo
+participant "WarehouseRepositoryAdapter" as WarehouseRepo
+participant "CompanyRepositoryAdapter" as CompanyRepo
+participant "TenderRepositoryAdapter" as TenderRepo
+participant "StockReportRepositoryAdapter" as ReportRepo
+participant "ObjectMapper" as Json
+database "PostgreSQL" as DB
+
+Client -> Ctrl : POST /api/reports/stock\n(Authorization: Bearer <token>, required)
+Ctrl -> Resolver : @CurrentUser(required=true)
+Resolver --> Ctrl : User actingUser
+Ctrl -> ReportUC : execute(actingUser.firstName + " " + actingUser.lastName)
+
+ReportUC -> ItemRepo : findAll()
+ItemRepo -> DB : SELECT * FROM items
+DB --> ItemRepo : rows
+ReportUC -> WarehouseRepo : findAll()
+WarehouseRepo -> DB : SELECT * FROM warehouses\nJOIN warehouse_items ...
+DB --> WarehouseRepo : rows
+
+ReportUC -> ReportUC : allocatedItemIds = union of every warehouse.items ids
+ReportUC -> ReportUC : unallocated = items not in allocatedItemIds
+ReportUC -> ReportUC : itemsByStatus = group by itemStatus, count, sort by key
+ReportUC -> ReportUC : itemsByType = group by itemType\n(null -> "UNSPECIFIED"), count, sort by key
+ReportUC -> ReportUC : itemsByWarehouse = (warehouseName, items.size()) sorted by name
+ReportUC -> ReportUC : lowHealthItems = items where health <= 30,\nsorted ascending by health
+
+ReportUC -> CompanyRepo : findAll().size()
+CompanyRepo -> DB : SELECT * FROM companies
+ReportUC -> TenderRepo : findAll().size()
+TenderRepo -> DB : SELECT * FROM tenders
+
+ReportUC -> ReportUC : build StockReport(id=null, generatedAt=now(), generatedByName, totals, breakdowns)
+ReportUC -> ReportRepo : save(report)
+ReportRepo -> Json : writeValueAsString(new Details(itemsByStatus, itemsByType,\nitemsByWarehouse, lowHealthItems))
+Json --> ReportRepo : detailsJson
+ReportRepo -> DB : INSERT INTO stock_reports\n(generated_at, generated_by_name, totals..., details_json)
+DB --> ReportRepo : generated id
+ReportRepo --> ReportUC : StockReport (with id)
+ReportUC --> Ctrl : StockReport
+Ctrl --> Client : 201 StockReportResponse + Location
+@enduml
+
+@startuml sequence-conclude-tender
+title Sequence - Conclude Tender (set winner + close)
+autonumber
+actor Client
+participant "TenderController" as Ctrl
+participant "ConcludeTenderUseCase" as ConcludeUC
+participant "TenderRepositoryAdapter" as TenderRepo
+participant "CompanyRepositoryAdapter" as CompanyRepo
+database "PostgreSQL" as DB
+
+Client -> Ctrl : POST /api/tenders/{id}/conclude\n{companyId}
+Ctrl -> ConcludeUC : execute(tenderId, companyId)
+ConcludeUC -> TenderRepo : findById(tenderId)
+TenderRepo -> DB : SELECT * FROM tenders WHERE id = ?
+DB --> TenderRepo : row or none
+TenderRepo --> ConcludeUC : Optional<Tender>
+
+alt tender not found
+  ConcludeUC --> Ctrl : throws IllegalArgumentException("Tender not found")
+  Ctrl --> Client : 404 ApiError
+else tender found
+  ConcludeUC -> CompanyRepo : findById(companyId)
+  CompanyRepo -> DB : SELECT * FROM companies WHERE id = ?
+  DB --> CompanyRepo : row or none
+  CompanyRepo --> ConcludeUC : Optional<Company>
+
+  alt company not found
+    ConcludeUC --> Ctrl : throws IllegalArgumentException("Company not found")
+    Ctrl --> Client : 404 ApiError
+  else company found
+    ConcludeUC -> ConcludeUC : tender.setTenderWinner(company)
+    ConcludeUC -> ConcludeUC : tender.changeTenderStatus(TenderStatus.OVER)\n(no transition guard - any prior status allowed)
+    ConcludeUC -> TenderRepo : save(tender)
+    TenderRepo -> DB : UPDATE tenders SET winner_company_id = ?, status = 'OVER' WHERE id = ?
+    DB --> TenderRepo : ok
+    ConcludeUC --> Ctrl : void
+    Ctrl --> Client : 204 No Content
+  end
+end
+@enduml
