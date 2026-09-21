@@ -4,6 +4,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import rw.adms.domain.tenders.enums.TenderType;
 
+import java.time.LocalDateTime;
+
 public record CreateTenderRequest(
 
         @NotBlank(message = "Tender title is required")
@@ -12,6 +14,8 @@ public record CreateTenderRequest(
         String description,
 
         @NotNull(message = "Tender type is required")
-        TenderType type
+        TenderType type,
+
+        LocalDateTime deadline
 ) {
 }

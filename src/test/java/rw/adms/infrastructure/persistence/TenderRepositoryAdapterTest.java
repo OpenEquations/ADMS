@@ -17,6 +17,7 @@ import rw.adms.domain.tenders.interfaces.TenderRepository;
 import rw.adms.infrastructure.spring.AdmsApplication;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -74,7 +75,8 @@ class TenderRepositoryAdapterTest {
         Tender tender = new Tender(
                 "Generator Repair Tender",
                 "Repair old generator",
-                TenderType.REPAIR_TENDER
+                TenderType.REPAIR_TENDER,
+                LocalDateTime.now().plusDays(7)
         );
 
         tender.addItem(savedItem);

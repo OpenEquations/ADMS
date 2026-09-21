@@ -55,7 +55,8 @@ public class TenderRepositoryAdapter implements TenderRepository {
                     tender.getTitle().getValue(),
                     tender.getDescription(),
                     tender.getType(),
-                    tender.getStatus()
+                    tender.getStatus(),
+                    tender.getDeadline()
             );
 
         } else {
@@ -83,6 +84,10 @@ public class TenderRepositoryAdapter implements TenderRepository {
 
             entity.setStatus(
                     tender.getStatus()
+            );
+
+            entity.setDeadline(
+                    tender.getDeadline()
             );
         }
 
@@ -212,7 +217,8 @@ public class TenderRepositoryAdapter implements TenderRepository {
                 items,
                 entity.getType(),
                 tenderWinner,
-                entity.getStatus()
+                entity.getStatus(),
+                entity.getDeadline()
         );
     }
 

@@ -49,7 +49,8 @@ class GetTenderItemsUseCaseTest {
                 List.of(item),
                 TenderType.SELLING_TENDER,
                 null,
-                TenderStatus.PUBLISHED
+                TenderStatus.PUBLISHED,
+                null
         );
 
         when(tenderRepository.findById(new TenderId(1L)))

@@ -8,6 +8,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import rw.adms.application.auth.usecases.ValidateSessionUseCase;
 import rw.adms.application.tenders.usecases.AddItemToTenderUseCase;
+import rw.adms.application.tenders.usecases.ChangeTenderDeadlineUseCase;
 import rw.adms.application.tenders.usecases.ChangeTenderDescriptionUseCase;
 import rw.adms.application.tenders.usecases.ChangeTenderStatusUseCase;
 import rw.adms.application.tenders.usecases.ChangeTenderTitleUseCase;
@@ -30,6 +31,7 @@ import rw.adms.presentation.tenders.dto.CreateTenderRequest;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.Mockito.doThrow;
@@ -76,6 +78,9 @@ class TenderControllerTest {
     private ChangeTenderStatusUseCase changeTenderStatusUseCase;
 
     @MockitoBean
+    private ChangeTenderDeadlineUseCase changeTenderDeadlineUseCase;
+
+    @MockitoBean
     private AddItemToTenderUseCase addItemToTenderUseCase;
 
     @MockitoBean
@@ -95,23 +100,28 @@ class TenderControllerTest {
                 List.of(),
                 TenderType.SELLING_TENDER,
                 null,
-                TenderStatus.PUBLISHED
+                TenderStatus.PUBLISHED,
+                LocalDateTime.now().plusDays(7)
         );
     }
 
     @Test
     void shouldCreateTender() throws Exception {
 
+        LocalDateTime deadline = LocalDateTime.now().plusDays(7);
+
         CreateTenderRequest request = new CreateTenderRequest(
                 "Office equipment tender",
                 "Selling old office equipment",
-                TenderType.SELLING_TENDER
+                TenderType.SELLING_TENDER,
+                deadline
         );
 
         when(createTenderUseCase.execute(
                 "Office equipment tender",
                 "Selling old office equipment",
-                TenderType.SELLING_TENDER
+                TenderType.SELLING_TENDER,
+                deadline
         )).thenReturn(sampleTender());
 
         mockMvc.perform(post("/api/tenders")
@@ -123,7 +133,8 @@ class TenderControllerTest {
         verify(createTenderUseCase).execute(
                 "Office equipment tender",
                 "Selling old office equipment",
-                TenderType.SELLING_TENDER
+                TenderType.SELLING_TENDER,
+                deadline
         );
     }
 
@@ -131,7 +142,7 @@ class TenderControllerTest {
     void shouldRejectCreateTenderWithBlankTitle() throws Exception {
 
         CreateTenderRequest request = new CreateTenderRequest(
-                "", "Selling old office equipment", TenderType.SELLING_TENDER
+                "", "Selling old office equipment", TenderType.SELLING_TENDER, null
         );
 
         mockMvc.perform(post("/api/tenders")

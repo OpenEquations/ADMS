@@ -7,6 +7,7 @@ import rw.adms.domain.tenders.enums.TenderType;
 import rw.adms.domain.tenders.vo.TenderId;
 import rw.adms.domain.tenders.vo.TenderTitle;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -22,16 +23,19 @@ public class Tender {
     private TenderType type;
     private Company tenderWinner;
     private TenderStatus status;
+    private LocalDateTime deadline;
 
     public Tender(
             String title,
             String description,
-            TenderType type
+            TenderType type,
+            LocalDateTime deadline
     ) {
         this.title = new TenderTitle(title);
         this.description = description;
         this.type = type;
         this.status = TenderStatus.NOT_PUBLISHED;
+        this.deadline = deadline;
     }
 
     private Tender(
@@ -41,7 +45,8 @@ public class Tender {
             List<Item> items,
             TenderType type,
             Company tenderWinner,
-            TenderStatus status
+            TenderStatus status,
+            LocalDateTime deadline
     ) {
         this.id = id;
         this.title = title;
@@ -50,6 +55,7 @@ public class Tender {
         this.type = type;
         this.tenderWinner = tenderWinner;
         this.status = status;
+        this.deadline = deadline;
     }
 
     public static Tender reconstitute(
@@ -59,7 +65,8 @@ public class Tender {
             List<Item> items,
             TenderType type,
             Company tenderWinner,
-            TenderStatus status
+            TenderStatus status,
+            LocalDateTime deadline
     ) {
         return new Tender(
                 new TenderId(id),
@@ -68,7 +75,8 @@ public class Tender {
                 items,
                 type,
                 tenderWinner,
-                status
+                status,
+                deadline
         );
     }
 
@@ -100,6 +108,10 @@ public class Tender {
         return status;
     }
 
+    public LocalDateTime getDeadline() {
+        return deadline;
+    }
+
     public void setDescription(String description) {
         this.description = description;
     }
@@ -108,10 +120,20 @@ public class Tender {
         this.title = new TenderTitle(title);
     }
 
+    public void setDeadline(LocalDateTime deadline) {
+        this.deadline = deadline;
+    }
+
     public void changeTenderStatus(TenderStatus status) {
         if (status == null) {
             throw new IllegalArgumentException(
                     "Tender status cannot be null"
+            );
+        }
+
+        if (status == TenderStatus.PUBLISHED && deadline == null) {
+            throw new IllegalArgumentException(
+                    "Tender cannot be published without a deadline"
             );
         }
 

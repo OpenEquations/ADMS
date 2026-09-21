@@ -3,6 +3,7 @@ package rw.adms.infrastructure.spring.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import rw.adms.application.tenders.usecases.AddItemToTenderUseCase;
+import rw.adms.application.tenders.usecases.ChangeTenderDeadlineUseCase;
 import rw.adms.application.tenders.usecases.ChangeTenderDescriptionUseCase;
 import rw.adms.application.tenders.usecases.ChangeTenderStatusUseCase;
 import rw.adms.application.tenders.usecases.ChangeTenderTitleUseCase;
@@ -56,6 +57,11 @@ public class TenderUseCaseConfig {
     @Bean
     public ChangeTenderStatusUseCase changeTenderStatusUseCase(TenderRepository tenderRepository) {
         return new ChangeTenderStatusUseCase(tenderRepository);
+    }
+
+    @Bean
+    public ChangeTenderDeadlineUseCase changeTenderDeadlineUseCase(TenderRepository tenderRepository) {
+        return new ChangeTenderDeadlineUseCase(tenderRepository);
     }
 
     @Bean

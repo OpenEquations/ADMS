@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import rw.adms.application.tenders.usecases.AddItemToTenderUseCase;
+import rw.adms.application.tenders.usecases.ChangeTenderDeadlineUseCase;
 import rw.adms.application.tenders.usecases.ChangeTenderDescriptionUseCase;
 import rw.adms.application.tenders.usecases.ChangeTenderStatusUseCase;
 import rw.adms.application.tenders.usecases.ChangeTenderTitleUseCase;
@@ -24,6 +25,7 @@ import rw.adms.application.tenders.usecases.GetTendersUseCase;
 import rw.adms.application.tenders.usecases.SetTenderWinnerUseCase;
 import rw.adms.presentation.items.dto.ItemResponse;
 import rw.adms.presentation.tenders.dto.AddItemToTenderRequest;
+import rw.adms.presentation.tenders.dto.ChangeTenderDeadlineRequest;
 import rw.adms.presentation.tenders.dto.ChangeTenderDescriptionRequest;
 import rw.adms.presentation.tenders.dto.ChangeTenderStatusRequest;
 import rw.adms.presentation.tenders.dto.ChangeTenderTitleRequest;
@@ -47,6 +49,7 @@ public class TenderController {
     private final ChangeTenderTitleUseCase changeTenderTitleUseCase;
     private final ChangeTenderDescriptionUseCase changeTenderDescriptionUseCase;
     private final ChangeTenderStatusUseCase changeTenderStatusUseCase;
+    private final ChangeTenderDeadlineUseCase changeTenderDeadlineUseCase;
     private final AddItemToTenderUseCase addItemToTenderUseCase;
     private final SetTenderWinnerUseCase setTenderWinnerUseCase;
     private final ConcludeTenderUseCase concludeTenderUseCase;
@@ -60,6 +63,7 @@ public class TenderController {
             ChangeTenderTitleUseCase changeTenderTitleUseCase,
             ChangeTenderDescriptionUseCase changeTenderDescriptionUseCase,
             ChangeTenderStatusUseCase changeTenderStatusUseCase,
+            ChangeTenderDeadlineUseCase changeTenderDeadlineUseCase,
             AddItemToTenderUseCase addItemToTenderUseCase,
             SetTenderWinnerUseCase setTenderWinnerUseCase,
             ConcludeTenderUseCase concludeTenderUseCase,
@@ -72,6 +76,7 @@ public class TenderController {
         this.changeTenderTitleUseCase = changeTenderTitleUseCase;
         this.changeTenderDescriptionUseCase = changeTenderDescriptionUseCase;
         this.changeTenderStatusUseCase = changeTenderStatusUseCase;
+        this.changeTenderDeadlineUseCase = changeTenderDeadlineUseCase;
         this.addItemToTenderUseCase = addItemToTenderUseCase;
         this.setTenderWinnerUseCase = setTenderWinnerUseCase;
         this.concludeTenderUseCase = concludeTenderUseCase;
@@ -84,7 +89,8 @@ public class TenderController {
         Tender tender = createTenderUseCase.execute(
                 request.title(),
                 request.description(),
-                request.type()
+                request.type(),
+                request.deadline()
         );
 
         return ResponseEntity
@@ -155,6 +161,15 @@ public class TenderController {
             @Valid @RequestBody ChangeTenderStatusRequest request
     ) {
         changeTenderStatusUseCase.execute(id, request.status());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/deadline")
+    public ResponseEntity<Void> changeDeadline(
+            @PathVariable("id") Long id,
+            @Valid @RequestBody ChangeTenderDeadlineRequest request
+    ) {
+        changeTenderDeadlineUseCase.execute(id, request.deadline());
         return ResponseEntity.noContent().build();
     }
 

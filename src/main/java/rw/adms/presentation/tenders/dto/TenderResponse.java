@@ -6,6 +6,7 @@ import rw.adms.domain.tenders.enums.TenderType;
 import rw.adms.presentation.company.dto.CompanyResponse;
 import rw.adms.presentation.items.dto.ItemResponse;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public record TenderResponse(
@@ -15,7 +16,8 @@ public record TenderResponse(
         List<ItemResponse> items,
         TenderType type,
         CompanyResponse tenderWinner,
-        TenderStatus status
+        TenderStatus status,
+        LocalDateTime deadline
 ) {
 
     public static TenderResponse from(Tender tender) {
@@ -26,7 +28,8 @@ public record TenderResponse(
                 tender.getItems().stream().map(ItemResponse::from).toList(),
                 tender.getType(),
                 tender.getTenderWinner() == null ? null : CompanyResponse.from(tender.getTenderWinner()),
-                tender.getStatus()
+                tender.getStatus(),
+                tender.getDeadline()
         );
     }
 }

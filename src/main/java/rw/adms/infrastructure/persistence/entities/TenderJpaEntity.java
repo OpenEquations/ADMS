@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import rw.adms.domain.tenders.enums.TenderStatus;
 import rw.adms.domain.tenders.enums.TenderType;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,6 +34,8 @@ public class TenderJpaEntity {
     @JoinColumn(name = "winner_company_id")
     private CompanyJpaEntity tenderWinner;
 
+    private LocalDateTime deadline;
+
     @ManyToMany
     @JoinTable(
             name = "tender_items",
@@ -57,12 +60,14 @@ public class TenderJpaEntity {
             String title,
             String description,
             TenderType type,
-            TenderStatus status
+            TenderStatus status,
+            LocalDateTime deadline
     ) {
         this.title = title;
         this.description = description;
         this.type = type;
         this.status = status;
+        this.deadline = deadline;
     }
 
     public Long getId() {
@@ -89,6 +94,10 @@ public class TenderJpaEntity {
         return tenderWinner;
     }
 
+    public LocalDateTime getDeadline() {
+        return deadline;
+    }
+
     public List<ItemJpaEntity> getItems() {
         return items;
     }
@@ -111,6 +120,10 @@ public class TenderJpaEntity {
 
     public void setTenderWinner(CompanyJpaEntity tenderWinner) {
         this.tenderWinner = tenderWinner;
+    }
+
+    public void setDeadline(LocalDateTime deadline) {
+        this.deadline = deadline;
     }
 
     public void setItems(List<ItemJpaEntity> items) {
