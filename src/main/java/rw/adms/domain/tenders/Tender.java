@@ -2,6 +2,7 @@ package rw.adms.domain.tenders;
 
 import rw.adms.domain.companies.Company;
 import rw.adms.domain.items.Item;
+import rw.adms.domain.items.vo.ItemId;
 import rw.adms.domain.tenders.enums.TenderStatus;
 import rw.adms.domain.tenders.enums.TenderType;
 import rw.adms.domain.tenders.vo.TenderId;
@@ -147,16 +148,40 @@ public class Tender {
             );
         }
 
-        if (items.stream()
-                .anyMatch(existingItem ->
-                        existingItem.getItemId().equals(item.getItemId()))) {
-
+        if (containsItem(item.getItemId())) {
             throw new IllegalArgumentException(
                     "Item already exists on this tender"
             );
         }
 
         items.add(item);
+    }
+
+    public void removeItem(ItemId itemId) {
+        if (itemId == null) {
+            throw new IllegalArgumentException(
+                    "Item ID cannot be null"
+            );
+        }
+
+        boolean removed = items.removeIf(
+                item -> item.getItemId().equals(itemId)
+        );
+
+        if (!removed) {
+            throw new IllegalArgumentException(
+                    "Item does not exist on this tender"
+            );
+        }
+    }
+
+    public boolean containsItem(ItemId itemId) {
+        if (itemId == null) {
+            return false;
+        }
+
+        return items.stream()
+                .anyMatch(item -> item.getItemId().equals(itemId));
     }
 
     public void setTenderWinner(Company company) {

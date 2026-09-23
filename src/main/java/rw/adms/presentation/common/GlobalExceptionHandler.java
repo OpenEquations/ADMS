@@ -1,5 +1,6 @@
 package rw.adms.presentation.common;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -58,6 +59,25 @@ public class GlobalExceptionHandler {
                         HttpStatus.FORBIDDEN.value(),
                         HttpStatus.FORBIDDEN.getReasonPhrase(),
                         ex.getMessage()
+                ));
+    }
+
+    /**
+     * Catches raw SQL constraint failures (e.g. deleting a row another table
+     * still has a foreign key pointing at) that slip past the application
+     * layer, so the client gets a clean, actionable message instead of a
+     * leaked SQL exception and a 500.
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiError> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(ApiError.of(
+                        HttpStatus.CONFLICT.value(),
+                        HttpStatus.CONFLICT.getReasonPhrase(),
+                        "This action could not be completed because the record is still "
+                                + "referenced elsewhere in the system. Remove those references first."
                 ));
     }
 

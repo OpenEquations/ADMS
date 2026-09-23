@@ -13,4 +13,6 @@ public interface ItemHealthRecordRepository {
      * order without re-sorting.
      */
     List<ItemHealthRecord> findByItemId(Long itemId);
+
+    void deleteByItemId(Long itemId);
 }

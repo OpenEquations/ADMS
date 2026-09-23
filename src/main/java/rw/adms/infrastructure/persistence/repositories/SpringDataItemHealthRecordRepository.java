@@ -9,4 +9,6 @@ public interface SpringDataItemHealthRecordRepository
         extends JpaRepository<ItemHealthRecordJpaEntity, Long> {
 
     List<ItemHealthRecordJpaEntity> findByItemIdOrderByRecordedAtAsc(Long itemId);
+
+    void deleteByItemId(Long itemId);
 }

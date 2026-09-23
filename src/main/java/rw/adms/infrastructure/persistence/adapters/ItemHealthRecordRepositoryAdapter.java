@@ -40,6 +40,11 @@ public class ItemHealthRecordRepositoryAdapter implements ItemHealthRecordReposi
                 .toList();
     }
 
+    @Override
+    public void deleteByItemId(Long itemId) {
+        repository.deleteByItemId(itemId);
+    }
+
     private ItemHealthRecord toDomain(ItemHealthRecordJpaEntity entity) {
 
         return new ItemHealthRecord(

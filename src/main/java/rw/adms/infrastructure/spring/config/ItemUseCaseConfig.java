@@ -14,6 +14,8 @@ import rw.adms.application.items.usecases.GetItemUseCase;
 import rw.adms.application.items.usecases.GetItemsUseCase;
 import rw.adms.domain.items.interfaces.ItemHealthRecordRepository;
 import rw.adms.domain.items.interfaces.ItemRepository;
+import rw.adms.domain.tenders.interfaces.TenderRepository;
+import rw.adms.domain.warehouses.interfaces.WarehouseRepository;
 
 /**
  * Wires the items bounded context's use cases as Spring beans.
@@ -76,7 +78,17 @@ public class ItemUseCaseConfig {
     }
 
     @Bean
-    public DeleteItemUseCase deleteItemUseCase(ItemRepository itemRepository) {
-        return new DeleteItemUseCase(itemRepository);
+    public DeleteItemUseCase deleteItemUseCase(
+            ItemRepository itemRepository,
+            WarehouseRepository warehouseRepository,
+            TenderRepository tenderRepository,
+            ItemHealthRecordRepository itemHealthRecordRepository
+    ) {
+        return new DeleteItemUseCase(
+                itemRepository,
+                warehouseRepository,
+                tenderRepository,
+                itemHealthRecordRepository
+        );
     }
 }
